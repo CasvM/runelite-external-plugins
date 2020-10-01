@@ -32,7 +32,6 @@ import java.util.HashMap;
 public class DpsCalcPlayerPanel extends JPanel {
 	private final int MAX_DISPLAY_ITEMS = 100;
 	private final ItemManager itemManager;
-	private final DpsCalcPlugin plugin;
 	private final Player player;
 	private final Client client;
 	private final HashMap<Integer, EquipmentSlotData> equipmentSlotData;
@@ -48,11 +47,6 @@ public class DpsCalcPlayerPanel extends JPanel {
 	private final JSpinner strengthLevel;
 	private final JSpinner magicLevel;
 	private final JSpinner rangeLevel;
-	private final JButton getStats;
-	private final String[] meleePrayerStrings = {"None", "5%", "10%", "15%", "Chivalry", "Piety"};
-	private final String[] rangePrayerStrings = {"None", "5%", "10%", "15%", "Rigour"};
-	private final String[] magicPrayerStrings = {"None", "5%", "10%", "15%", "Augury"};
-	private final String[] potionStrings = {"None", "Normal", "Super", "Overload"};
 	private final JComboBox attackPrayer;
 	private final JComboBox strengthPrayer;
 	private final JComboBox rangePrayer;
@@ -69,7 +63,6 @@ public class DpsCalcPlayerPanel extends JPanel {
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 		ToolTipManager.sharedInstance().setDismissDelay(99999999);
 
-		this.plugin = plugin;
 		this.itemManager = itemManager;
 		this.player = player;
 		this.client = client;
@@ -89,17 +82,24 @@ public class DpsCalcPlayerPanel extends JPanel {
 		JPanel playerStatsInputPanel = new JPanel();
 		playerStatsInputPanel.setLayout(new GridLayout(5, 2, 7, 7));
 		playerStatsInputPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
-		attackLevel = addSpinnerComponent("Attack Level", player.getAttackLevel(), 1, 99, 1, playerStatsInputPanel);
-		attackPrayer = addDropDownComponent("Prayer", meleePrayerStrings, playerStatsInputPanel, player.getAttackPrayerIndex());
-		strengthLevel = addSpinnerComponent("Strength Level", player.getStrengthLevel(), 1, 99, 1, playerStatsInputPanel);
-		strengthPrayer = addDropDownComponent("Prayer", meleePrayerStrings, playerStatsInputPanel, player.getStrengthPrayerIndex());
-		rangeLevel = addSpinnerComponent("Range Level", player.getRangeLevel(), 1, 99, 1, playerStatsInputPanel);
-		rangePrayer = addDropDownComponent("Prayer", rangePrayerStrings, playerStatsInputPanel, player.getRangePrayerIndex());
-		magicLevel = addSpinnerComponent("Magic Level", player.getMagicLevel(), 1, 99, 1, playerStatsInputPanel);
-		magicPrayer = addDropDownComponent("Prayer", magicPrayerStrings, playerStatsInputPanel, player.getMagicPrayerIndex());
-		getStats = addButtonComponent(" ", "Import Stats", playerStatsInputPanel);
+
+		String[] meleePrayers = {"None", "5%", "10%", "15%", "Chivalry", "Piety"};
+		attackLevel = addSpinnerComponent("Attack Level", player.getAttackLevel(), playerStatsInputPanel);
+		attackPrayer = addDropDownComponent("Prayer", meleePrayers, playerStatsInputPanel, player.getAttackPrayerIndex());
+		strengthLevel = addSpinnerComponent("Strength Level", player.getStrengthLevel(), playerStatsInputPanel);
+		strengthPrayer = addDropDownComponent("Prayer", meleePrayers, playerStatsInputPanel, player.getStrengthPrayerIndex());
+
+		rangeLevel = addSpinnerComponent("Range Level", player.getRangeLevel(), playerStatsInputPanel);
+		rangePrayer = addDropDownComponent("Prayer", new String [] {"None", "5%", "10%", "15%", "Rigour"}, playerStatsInputPanel, player.getRangePrayerIndex());
+
+		magicLevel = addSpinnerComponent("Magic Level", player.getMagicLevel(), playerStatsInputPanel);
+		magicPrayer = addDropDownComponent("Prayer", new String[] {"None", "5%", "10%", "15%", "Augury"}, playerStatsInputPanel, player.getMagicPrayerIndex());
+
+		JButton getStats = addButtonComponent(" ", "Import Stats", playerStatsInputPanel);
 		getStats.setToolTipText("Click to use your character's stats.");
-		potion = addDropDownComponent("Potion", potionStrings, playerStatsInputPanel, player.getPotionIndex());
+
+		potion = addDropDownComponent("Potion", new String[] {"None", "Normal", "Super", "Overload"}, playerStatsInputPanel, player.getPotionIndex());
+
 		getStats.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseReleased(MouseEvent e) {
@@ -162,12 +162,12 @@ public class DpsCalcPlayerPanel extends JPanel {
 		return data;
 	}
 
-	private JSpinner addSpinnerComponent(String label, int init, int min, int max, int step, JPanel panel) {
+	private JSpinner addSpinnerComponent(String label, int init, JPanel panel) {
 		final JPanel container = new JPanel();
 		container.setLayout(new BorderLayout());
 
 		final JLabel uiLabel = new JLabel(label);
-		final SpinnerNumberModel model = new SpinnerNumberModel(init, min, max, step);
+		final SpinnerNumberModel model = new SpinnerNumberModel(init, 1, 99, 1);
 		final JSpinner uiInput = new JSpinner(model);
 
 		uiInput.setBackground(ColorScheme.DARKER_GRAY_COLOR);

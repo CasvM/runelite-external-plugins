@@ -81,12 +81,6 @@ public class DpsCalcPlugin extends Plugin {
 		saveConfig();
 	}
 
-	@Subscribe
-	public void onClientShutdown(ClientShutdown event)
-	{
-		saveConfig();
-	}
-
 	public void saveConfig() {
 		uiPanel.getPlayerPanel().setPlayerStats();
 		uiPanel.getTargetPanel().setTargetStats();
@@ -118,40 +112,40 @@ public class DpsCalcPlugin extends Plugin {
 		double timeToKill = 0;
 		ItemStats stats = player.getTotalBonuses();
 		int attackSpeed = player.attackSpeed();
-		int A = player.getEffectiveStrengthLevel();
-		int B = stats.getMelee_strength();
-		int C = player.getEffectiveAttackLevel();
-		int D = stats.getAttack_stab();
+		int effectiveStrengthLevel = player.getEffectiveStrengthLevel();
+		int meleeStrength = stats.getMelee_strength();
+		int effectiveAttackLevel = player.getEffectiveAttackLevel();
+		int statsAttackStab = stats.getAttack_stab();
 		int num = 0;
 		int targetDefenseBonus = 0;
 		double targetEffectiveDefenseLevel = target.getDefenseLevel() * Math.pow(0.7, target.getDwh()) * Math.pow(0.95, target.getArclight()) - target.getBgs();
 		switch (player.attackType()[1]) {
 			case "slash":
 				targetDefenseBonus = target.getSlashDefenseBonus();
-				D = stats.getAttack_slash();
+				statsAttackStab = stats.getAttack_slash();
 				break;
 			case "crush":
 				targetDefenseBonus = target.getCrushDefenseBonus();
-				D = stats.getAttack_crush();
+				statsAttackStab = stats.getAttack_crush();
 				break;
 			case "stab":
 				targetDefenseBonus = target.getStabDefenseBonus();
-				D = stats.getAttack_stab();
+				statsAttackStab = stats.getAttack_stab();
 				break;
 		}
-		maxHit = (int) (0.5 + A * (B + 64) / 640.0);
+		maxHit = (int) (0.5 + effectiveStrengthLevel * (meleeStrength + 64) / 640.0);
 		if (player.getCurrentSet().containsKey(3) && player.getCurrentSet().get(3).getEquipment().getAttack_ranged() > 0) {
-			A = player.getEffectiveRangeStrengthLevel();
-			B = stats.getRanged_strength();
-			C = player.getEffectiveRangeAttackLevel();
-			D = stats.getAttack_ranged();
+			effectiveStrengthLevel = player.getEffectiveRangeStrengthLevel();
+			meleeStrength = stats.getRanged_strength();
+			effectiveAttackLevel = player.getEffectiveRangeAttackLevel();
+			statsAttackStab = stats.getAttack_ranged();
 			targetDefenseBonus = target.getRangedDefenseBonus();
 			num = 1;
-			maxHit = (int) (0.5 + A * (B + 64) / 640.0);
+			maxHit = (int) (0.5 + effectiveStrengthLevel * (meleeStrength + 64) / 640.0);
 		}
 		if (player.getSpellIndex() != 0) {
-			C = player.getEffectiveMagicLevel();
-			D = stats.getAttack_magic();
+			effectiveAttackLevel = player.getEffectiveMagicLevel();
+			statsAttackStab = stats.getAttack_magic();
 			targetDefenseBonus = target.getMagicDefenseBonus();
 			targetEffectiveDefenseLevel = target.getMagicLevel();
 			num = 2;
@@ -160,7 +154,7 @@ public class DpsCalcPlugin extends Plugin {
 		}
 		maxHit = (int) (maxHit * target.getSalve()[num] * target.getSlayerBonus()[num] * target.getDemon() * target.getDragon() *
 				player.inquisitor() * twistedBow()[0] * player.tomeOfFire() * target.getKalphite());
-		maxRoll = C * (D + 64);
+		maxRoll = effectiveAttackLevel * (statsAttackStab + 64);
 		maxRoll = (int) (maxRoll * target.getSalve()[num] * target.getSlayerBonus()[num] * target.getDemon() * target.getDragon() *
 				player.inquisitor() * twistedBow()[1] * target.getKalphite());
 		targetMaxRoll = (int) ((targetEffectiveDefenseLevel + 9) * (targetDefenseBonus + 64));
