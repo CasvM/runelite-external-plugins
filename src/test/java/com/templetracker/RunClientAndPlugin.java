@@ -7,7 +7,7 @@ public class RunClientAndPlugin
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(ExamplePlugin.class);
+		ExternalPluginManager.loadBuiltin(TempleTrackerPlugin.class);
 		RuneLite.main(args);
 	}
 }
