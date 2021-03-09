@@ -49,8 +49,6 @@ public class TempleTrackerPlugin extends Plugin
 	@Inject
 	private PluginManager pluginManager;
 
-	private final MenuSwapperPlugin swapper = new MenuSwapperPlugin(client, config);
-
 	private final FileReadWriter fw = new FileReadWriter();
 
 
@@ -59,7 +57,7 @@ public class TempleTrackerPlugin extends Plugin
 	{
 		try
 		{
-			pluginManager.startPlugin(swapper);
+			pluginManager.startPlugin(new MenuSwapperPlugin(client, config));
 		}
 		catch(Exception e) {
 			log.info("plugin failed to load");
