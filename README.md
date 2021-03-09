@@ -1,2 +1,2 @@
 # Temple Tracker
-Tracks the points, encounters, and duration of each encounter. Is written to a file within the .runelite folder for later processing.
+Tracks the points and duration of a temple trek, as well as all encounters, and the duration of each encounter.
