@@ -1,23 +1,11 @@
-package com.templetracker;
+package com.templetracker.constructors;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 
-@Data
-public class Encounter
-{
-	Long startTime = System.currentTimeMillis();
-	Long endTime = -1L;
-
-	EncounterName name = null;
-
-	int location = -1;
-	int route = -1;
-}
-
 @AllArgsConstructor
-enum EncounterName {
+public enum EncounterName
+{
 	VAMPYRES("Vampyres"),
 	GHASTS("Ghasts"),
 	SHADES("Shades"),

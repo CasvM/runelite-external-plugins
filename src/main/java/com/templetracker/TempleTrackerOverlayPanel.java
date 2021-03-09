@@ -1,5 +1,7 @@
 package com.templetracker;
 
+import com.templetracker.constructors.Encounter;
+import com.templetracker.constructors.TempleTracker;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -85,7 +87,7 @@ public class TempleTrackerOverlayPanel extends OverlayPanel
 		if (tracker.getLatestEncounter() != null || tracker.getEncounterList().size() > 0) {
 			addSpacer(3);
 			panelComponent.getChildren().add(LineComponent.builder().left("Encounters:").build());
-			addSpacer(3);
+			addSpacer(1);
 			for (Encounter encounter : tracker.getEncounterList()) {
 				addSplitPanel((encounter.getName().getName()), millisToMinuteString(encounter.getEndTime() - encounter.getStartTime()));
 			}

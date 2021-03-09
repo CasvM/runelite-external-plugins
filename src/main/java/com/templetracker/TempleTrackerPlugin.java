@@ -1,10 +1,17 @@
 package com.templetracker;
 
 import com.google.inject.Provides;
+import com.templetracker.constructors.Companion;
+import com.templetracker.constructors.Encounter;
+import com.templetracker.constructors.EncounterName;
+import com.templetracker.constructors.StartLocation;
+import com.templetracker.constructors.TempleTracker;
+import com.templetracker.menuentryswapper.MenuSwapperPlugin;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.GameState;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GroundObjectSpawned;
@@ -15,6 +22,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.ui.overlay.OverlayManager;
 
 @Slf4j
@@ -38,14 +46,28 @@ public class TempleTrackerPlugin extends Plugin
 	@Inject
 	private TempleTrackerOverlayPanel overlayPanel;
 
-	@Override
-	protected void startUp() throws Exception
-	{
+	@Inject
+	private PluginManager pluginManager;
 
+	private final MenuSwapperPlugin swapper = new MenuSwapperPlugin(client, config);
+
+	private final FileReadWriter fw = new FileReadWriter();
+
+
+	@Override
+	protected void startUp()
+	{
+		try
+		{
+			pluginManager.startPlugin(swapper);
+		}
+		catch(Exception e) {
+			log.info("plugin failed to load");
+		}
 	}
 
 	@Override
-	protected void shutDown() throws Exception
+	protected void shutDown()
 	{
 		overlayManager.remove(overlayPanel);
 	}
@@ -123,6 +145,10 @@ public class TempleTrackerPlugin extends Plugin
 			return;
 		}
 
+		if (tracker.getCompanion() == null && Companion.getCompanion(npcSpawned.getNpc().getName()) != null) {
+			tracker.setCompanion(Companion.getCompanion(npcSpawned.getNpc().getName()));
+		}
+
 		final String GHAST_NAME = "Ghast";
 		final String SHADE_NAME = "Shade";
 		final String SHADE_RIYL_NAME = "Riyl shadow";
@@ -176,7 +202,7 @@ public class TempleTrackerPlugin extends Plugin
 		}
 
 		//1956 0 -> 1 is starting trek
-		if (startCheckValue == 1 && tracker.check == 0) {
+		if (startCheckValue == 1 && tracker.getCheck() == 0) {
 			tracker.setCheck(1);
 		}
 
@@ -187,7 +213,7 @@ public class TempleTrackerPlugin extends Plugin
 
 		//1958 -> 0 = end of the encounter
 		else if (encounter == 0 && tracker.getLatestEncounter() != null) {
-			tracker.latestEncounter.setEndTime(System.currentTimeMillis());
+			tracker.getLatestEncounter().setEndTime(System.currentTimeMillis());
 			tracker.addEncounterToList();
 		}
 
@@ -199,6 +225,11 @@ public class TempleTrackerPlugin extends Plugin
 
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged gameStateChanged) {
+		if (gameStateChanged.getGameState() == GameState.LOGGING_IN)
+		{
+			fw.updateUsername(client.getUsername());
+		}
+
 		if (client.getLocalPlayer() == null) {
 			return;
 		}
@@ -252,15 +283,21 @@ public class TempleTrackerPlugin extends Plugin
 			}
 		}
 
-		overlayManager.add(overlayPanel);
+		if (config.showOverlay())
+		{
+			overlayManager.add(overlayPanel);
+		}
 	}
 
 	private void templeTrekkingEnded() {
 		tracker.setCheck(0);
 		tracker.setTempleTrekking(false);
-		log.info(tracker.toString());
 		if (tracker.getEndTime() < 0) {
 			overlayManager.remove(overlayPanel);
+		}
+
+		if (config.logData()) {
+			fw.writeToFile(tracker);
 		}
 	}
 

@@ -1,9 +1,6 @@
-package com.templetracker;
-
+package com.templetracker.constructors;
 import lombok.Data;
-import lombok.AllArgsConstructor;
 import java.util.ArrayList;
-import lombok.Getter;
 
 @Data
 public class TempleTracker
@@ -12,6 +9,7 @@ public class TempleTracker
 	Long endTime = -1L;
 
 	StartLocation startLocation = null;
+	Companion companion = null;
 
 	int route = -1;
 	int points = -1;
@@ -30,22 +28,6 @@ public class TempleTracker
 	}
 }
 
-@AllArgsConstructor
-enum StartLocation
-{
-	BURGH_DE_ROTT("Burgh de rott", 13874),
-	PATERDOMUS("Paterdomus", 13622);
-
-	@Getter
-	private final String name;
-
-	@Getter
-	private final int RegionID;
-}
-
-enum Companion {
-
-}
 
 
 
