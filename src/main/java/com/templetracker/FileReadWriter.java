@@ -2,10 +2,15 @@ package com.templetracker;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.templetracker.constructors.TempleTracker;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import lombok.extern.slf4j.Slf4j;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 
@@ -40,12 +45,8 @@ public class FileReadWriter
 	public void writeToFile(TempleTracker templeTracker) {
 		try
 		{
-			log.info("writer started");
-
 			//use json format so serializing and deserializing is easy
 			Gson gson = new GsonBuilder().create();
-
-//			JsonParser parser = new JsonParser();
 
 			String fileName = dir_TT + "\\temple_trek_data.log";
 
@@ -62,6 +63,44 @@ public class FileReadWriter
 			System.err.println("IOException: " + ioe.getMessage() + " in writeToFile");
 		}
 	}
+
+	public ArrayList<TempleTracker> readFromFile() {
+		try
+		{
+			//use json format so serializing and deserializing is easy
+			Gson gson = new GsonBuilder().create();
+
+			String fileName = dir_TT + "\\temple_trek_data.log";
+
+			JsonParser parser = new JsonParser();
+
+			BufferedReader bufferedreader = new BufferedReader(new FileReader(fileName));
+			String line;
+
+			ArrayList<TempleTracker> TTList = new ArrayList<>();
+
+			while ((line = bufferedreader.readLine()) != null && line.length() > 0) {
+				try {
+					TempleTracker parsed = gson.fromJson(parser.parse(line), TempleTracker.class);
+					TTList.add(parsed);
+				}
+				catch (JsonSyntaxException e) {
+					System.out.println("Bad line: " + line);
+				}
+
+			}
+
+			bufferedreader.close();
+			return TTList;
+
+		}
+		catch(IOException ioe)
+		{
+			System.err.println("IOException: " + ioe.getMessage() + " in writeToFile");
+			return new ArrayList<>();
+		}
+	}
+
 
 	public void IGNORE_RESULT(boolean b) {}
 }

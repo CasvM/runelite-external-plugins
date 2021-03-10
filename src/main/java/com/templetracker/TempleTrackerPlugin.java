@@ -12,6 +12,8 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.MenuAction;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GroundObjectSpawned;
@@ -20,10 +22,12 @@ import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.OverlayMenuClicked;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.ui.overlay.OverlayMenuEntry;
 
 @Slf4j
 @PluginDescriptor(
@@ -46,6 +50,8 @@ public class TempleTrackerPlugin extends Plugin
 	@Inject
 	private TempleTrackerOverlayPanel overlayPanel;
 
+	@Inject TreksPerHourOverlayPanel treksPerHourOverlayPanel;
+
 	@Inject
 	private PluginManager pluginManager;
 
@@ -67,7 +73,7 @@ public class TempleTrackerPlugin extends Plugin
 	@Override
 	protected void shutDown()
 	{
-		overlayManager.remove(overlayPanel);
+		removePanels();
 	}
 
 	@Subscribe
@@ -250,10 +256,26 @@ public class TempleTrackerPlugin extends Plugin
 			templeTrekkingStarted();
 		}
 
-		if (!tracker.isTempleTrekking() && client.getLocalPlayer().getWorldLocation().getRegionID() != StartLocation.BURGH_DE_ROTT.getRegionID()
-			&& client.getLocalPlayer().getWorldLocation().getRegionID() != StartLocation.PATERDOMUS.getRegionID())
+		int location = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();
+		if (tracker.getEndTime() > 0
+			&& location != StartLocation.BURGH_DE_ROTT.getRegionID()
+			&& location != StartLocation.PATERDOMUS.getRegionID()
+			&& location != 7769 //home
+			&& location != 7770 //home
+			&& location != 13613) //elidinis statue
 		{
-			overlayManager.remove(overlayPanel);
+			removePanels();
+		}
+	}
+
+	@Subscribe
+	public void onOverlayMenuClicked(OverlayMenuClicked overlayMenuClicked)	{
+		OverlayMenuEntry overlayMenuEntry = overlayMenuClicked.getEntry();
+		if (overlayMenuEntry.getMenuAction() == MenuAction.RUNELITE_OVERLAY
+			&& overlayMenuClicked.getEntry().getOption().equals(TreksPerHourOverlayPanel.TREKS_RESET)
+			&& overlayMenuClicked.getOverlay() == treksPerHourOverlayPanel)
+		{
+			treksPerHourOverlayPanel.reset();
 		}
 	}
 
@@ -283,7 +305,7 @@ public class TempleTrackerPlugin extends Plugin
 
 		if (config.showOverlay())
 		{
-			overlayManager.add(overlayPanel);
+			addPanels();
 		}
 	}
 
@@ -293,10 +315,23 @@ public class TempleTrackerPlugin extends Plugin
 		if (tracker.getEndTime() < 0) {
 			overlayManager.remove(overlayPanel);
 		}
-
-		if (config.logData()) {
-			fw.writeToFile(tracker);
+		else {
+			if (config.logData()) {
+				fw.writeToFile(tracker);
+			}
+			treksPerHourOverlayPanel.addTrek(tracker);
 		}
+
+	}
+
+	private void addPanels() {
+		overlayManager.add(overlayPanel);
+		overlayManager.add(treksPerHourOverlayPanel);
+	}
+
+	private void removePanels() {
+		overlayManager.remove(overlayPanel);
+		overlayManager.remove(treksPerHourOverlayPanel);
 	}
 
 	@Provides
