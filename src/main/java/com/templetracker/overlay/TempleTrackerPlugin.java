@@ -1,12 +1,12 @@
-package com.templetracker;
+package com.templetracker.overlay;
 
 import com.google.inject.Provides;
+import com.templetracker.FileReadWriter;
 import com.templetracker.constructors.Companion;
 import com.templetracker.constructors.Encounter;
 import com.templetracker.constructors.EncounterName;
 import com.templetracker.constructors.StartLocation;
 import com.templetracker.constructors.TempleTracker;
-import com.templetracker.menuentryswapper.MenuSwapperPlugin;
 import javax.inject.Inject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -25,13 +25,13 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.OverlayMenuClicked;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.OverlayMenuEntry;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Temple Tracker"
+	name = "Temple Tracker",
+	description = "Adds an overlay to the screen showing treks/hour, duration of each trek and average points"
 )
 public class TempleTrackerPlugin extends Plugin
 {
@@ -52,24 +52,13 @@ public class TempleTrackerPlugin extends Plugin
 
 	@Inject TreksPerHourOverlayPanel treksPerHourOverlayPanel;
 
-	@Inject
-	private PluginManager pluginManager;
-
 	private final FileReadWriter fw = new FileReadWriter();
 
 	private int previousRegion = 0;
 
-
 	@Override
 	protected void startUp()
 	{
-		try
-		{
-			pluginManager.startPlugin(new MenuSwapperPlugin(client, config));
-		}
-		catch(Exception e) {
-			log.info("plugin failed to load");
-		}
 	}
 
 	@Override

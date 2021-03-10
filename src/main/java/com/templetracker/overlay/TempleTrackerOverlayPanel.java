@@ -1,4 +1,4 @@
-package com.templetracker;
+package com.templetracker.overlay;
 
 import com.templetracker.constructors.Encounter;
 import com.templetracker.constructors.TempleTracker;

@@ -1,14 +1,16 @@
 package com.templetracker.menuentryswapper;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.inject.Provides;
 import com.templetracker.constructors.Companion;
-import com.templetracker.TempleTrackerConfig;
 import java.util.List;
+import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.events.ClientTick;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -16,16 +18,21 @@ import net.runelite.client.util.Text;
 
 @Slf4j
 @PluginDescriptor(
-	name = "Temple Trekking Menu Entry Swapper"
+	name = "Temple Trekking Swapper",
+	description = "Adds the possibility to swap to continue-trek, escort (companion), and use on the druid pouch"
 )
 public class MenuSwapperPlugin extends Plugin
 {
-	private final Client client;
-	private final TempleTrackerConfig config;
+	@Inject
+	private Client client;
 
-	public MenuSwapperPlugin(Client client, TempleTrackerConfig config) {
-		this.client = client;
-		this.config = config;
+	@Inject
+	private MenuSwapperConfig config;
+
+	@Provides
+	MenuSwapperConfig provideConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(MenuSwapperConfig.class);
 	}
 
 	@Override

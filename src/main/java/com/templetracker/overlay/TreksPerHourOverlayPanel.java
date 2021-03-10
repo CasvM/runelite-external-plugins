@@ -1,4 +1,4 @@
-package com.templetracker;
+package com.templetracker.overlay;
 
 import com.templetracker.constructors.TempleTracker;
 import java.awt.Dimension;
@@ -101,7 +101,6 @@ public class TreksPerHourOverlayPanel extends OverlayPanel
 			meanPoints = tempAddPoints / tempTTList.size();
 		}
 		else if (tempTTList.size() == 1 && TTList.size() >= 2) {
-			System.out.println(TTList.toString());
 			meanTime = TTList.get(TTList.size() - 1).getEndTime() - TTList.get(TTList.size() - 2).getEndTime();
 			meanPoints = TTList.get(TTList.size() - 1).getPoints();
 		}
