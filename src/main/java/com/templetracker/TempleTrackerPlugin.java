@@ -57,6 +57,8 @@ public class TempleTrackerPlugin extends Plugin
 
 	private final FileReadWriter fw = new FileReadWriter();
 
+	private int previousRegion = 0;
+
 
 	@Override
 	protected void startUp()
@@ -261,10 +263,14 @@ public class TempleTrackerPlugin extends Plugin
 			&& location != StartLocation.BURGH_DE_ROTT.getRegionID()
 			&& location != StartLocation.PATERDOMUS.getRegionID()
 			&& location != 7769 //home
-			&& location != 7770 //home
+			&& previousRegion != 7769 //region changes for a bit when tp'ing away from home
 			&& location != 13613) //elidinis statue
 		{
 			removePanels();
+		}
+
+		if (location != previousRegion) {
+			previousRegion = location;
 		}
 	}
 
