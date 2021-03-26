@@ -173,6 +173,7 @@ public class TemporossPlugin extends Plugin
 		{
 			npcs.clear();
 			gameObjects.clear();
+			totemMap.clear();
 			removeFishToCookInfoBox();
 		}
 
@@ -198,7 +199,7 @@ public class TemporossPlugin extends Plugin
 	{
 		updateRewardInfoBox();
 
-		//11895 = 2 means tethered to a mast, 1 to a totem, 0 untethered
+		//11895 > 0 means tethered, 0 untethered. The exact value depends on what totem you're tethered to
 		if (client.getVarbitValue(11895) > 0 && waveIsIncoming)
 		{
 			updateTotemTimers(config.tetheredColor());
@@ -315,7 +316,7 @@ public class TemporossPlugin extends Plugin
 			totemMap.forEach((object, drawObject) ->
 			{
 				drawObject.setStartTime(Instant.now());
-				if (client.getVarbitValue(11895) == 1)
+				if (client.getVarbitValue(11895) > 0)
 				{
 					drawObject.setColor(config.tetheredColor());
 				}
