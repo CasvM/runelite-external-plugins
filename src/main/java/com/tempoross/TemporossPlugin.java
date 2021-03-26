@@ -18,6 +18,7 @@ import net.runelite.api.InventoryID;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
@@ -81,7 +82,9 @@ public class TemporossPlugin extends Plugin
 	private TemporossInfoBox infoBox;
 	private TemporossInfoBox fishToCook;
 
-	boolean waveIsIncoming;
+	private boolean waveIsIncoming;
+
+	private int previousRegion;
 
 	@Override
 	protected void startUp()
@@ -170,14 +173,18 @@ public class TemporossPlugin extends Plugin
 		int UNKAH_REWARD_POOL_REGION = 12588;
 		int UNKAH_BOAT_REGION = 12332;
 
-		int region = client.getLocalPlayer().getWorldLocation().getRegionID();
+		int region = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();;
 
 		if (region != TEMPOROSS_REGION)
 		{
 			npcs.clear();
 			gameObjects.clear();
-			totemMap.clear();
 			removeFishToCookInfoBox();
+
+			if (previousRegion == TEMPOROSS_REGION)
+			{
+				totemMap.clear();
+			}
 		}
 
 	if (region == UNKAH_BOAT_REGION || region == UNKAH_REWARD_POOL_REGION)
@@ -195,6 +202,8 @@ public class TemporossPlugin extends Plugin
 		{
 			removeRewardInfoBox();
 		}
+
+		previousRegion = region;
 	}
 
 	@Subscribe
