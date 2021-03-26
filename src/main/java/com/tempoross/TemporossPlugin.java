@@ -175,16 +175,13 @@ public class TemporossPlugin extends Plugin
 
 		int region = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();;
 
-		if (region != TEMPOROSS_REGION)
+		if (region != TEMPOROSS_REGION && previousRegion == TEMPOROSS_REGION)
 		{
 			npcs.clear();
-			gameObjects.clear();
 			removeFishToCookInfoBox();
-
-			if (previousRegion == TEMPOROSS_REGION)
-			{
-				totemMap.clear();
-			}
+			totemMap.clear();
+			gameObjects.clear();
+			waveIsIncoming = false;
 		}
 
 	if (region == UNKAH_BOAT_REGION || region == UNKAH_REWARD_POOL_REGION)
@@ -269,11 +266,7 @@ public class TemporossPlugin extends Plugin
 			return;
 		}
 
-		if (fishToCook == null)
-		{
-			addFishInfoBox("");
-		}
-		int bossHealth = 270;
+		double bossHealth = 270 - (270 * (config.targetPercentage() / 100.0));
 
 		Widget energyWidget = client.getWidget(437, 37);
 		Widget stormWidget = client.getWidget(437, 57);
@@ -283,7 +276,7 @@ public class TemporossPlugin extends Plugin
 			//check for storm to be higher than 0 so that the infobox doesn't react in between phases
 			if (Integer.parseInt(stormWidget.getText().split(": ")[1].split("%")[0]) > 0)
 			{
-				bossHealth = (int) Math.round(270 * Integer.parseInt(energyWidget.getText().split(": ")[1].split("%")[0]) / 100.0);
+				bossHealth = Math.round(bossHealth * Integer.parseInt(energyWidget.getText().split(": ")[1].split("%")[0]) / 100.0);
 			}
 		}
 
@@ -293,9 +286,23 @@ public class TemporossPlugin extends Plugin
 
 		amountToCook = Math.max(amountToCook, 0);
 
-		//change the infobox image when it first becomes possible to kill the boss
+		String toolTip =
+			"Minimum amount of fish to catch: " +
+				amountToFish +
+				"</br>" +
+				"Minimum amount of fish to cook: " +
+				amountToCook;
+
+		if (fishToCook == null)
+		{
+			addFishInfoBox(amountToFish + "/" + amountToCook);
+		}
+
+		fishToCook.setToolTipText(toolTip);
+
 		if ((guaranteedDamage + uncookedFish * 5) > bossHealth && fishToCook.getRewardCount() < 0)
 		{
+			//change the infobox image when it first becomes possible to kill the boss
 			removeFishToCookInfoBox();
 			fishToCook = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "harpoonfish.png"), this, amountToCook);
 			fishToCook.setAlternateText(amountToFish + "/" + amountToCook);
@@ -310,15 +317,6 @@ public class TemporossPlugin extends Plugin
 		{
 			fishToCook.setAlternateText(amountToFish + "/" + amountToCook);
 		}
-
-		String toolTip =
-			"Minimum amount of fish to catch: " +
-			amountToFish +
-			"</br>" +
-			"Minimum amount of fish to cook: " +
-			amountToCook;
-
-		fishToCook.setToolTipText(toolTip);
 	}
 
 	public void addTotemTimers()

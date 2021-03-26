@@ -4,6 +4,7 @@ import java.awt.Color;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.Range;
 
 @ConfigGroup("tempoross")
 public interface TemporossConfig extends Config
@@ -124,5 +125,20 @@ public interface TemporossConfig extends Config
 	default boolean cookIndicator()
 	{
 		return true;
+	}
+
+	@Range(
+		min = 0,
+		max = 100
+	)
+	@ConfigItem(
+		keyName = "targetPercentage",
+		name = "Target percentage",
+		description = "Target percentage of energy left, so that, the cook indicator shows how much fish you need to fish/cook to reach that percentage.",
+		position = 10
+	)
+
+	default int targetPercentage() {
+		return 0;
 	}
 }
