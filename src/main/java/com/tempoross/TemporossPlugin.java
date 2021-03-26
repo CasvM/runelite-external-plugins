@@ -67,6 +67,9 @@ public class TemporossPlugin extends Plugin
 
 	private final Set<Integer> TEMPOROSS_NPCS = ImmutableSet.of(10569); //double fishing spot
 
+	static private final int TEMPOROSS_ISTETHERED = 11895;
+	static private final int TEMPOROSS_REWARDPOOL = 11936;
+
 	@Getter
 	private final Map<GameObject, DrawObject> gameObjects = new HashMap<>();
 
@@ -181,7 +184,7 @@ public class TemporossPlugin extends Plugin
 		{
 			if (infoBox == null)
 			{
-				infoBox = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "tome_of_water.png"), this, client.getVarbitValue(11936));
+				infoBox = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "tome_of_water.png"), this, client.getVarbitValue(TEMPOROSS_REWARDPOOL));
 				infoBoxManager.addInfoBox(infoBox);
 			}
 
@@ -199,12 +202,12 @@ public class TemporossPlugin extends Plugin
 	{
 		updateRewardInfoBox();
 
-		//11895 > 0 means tethered, 0 untethered. The exact value depends on what totem you're tethered to
-		if (client.getVarbitValue(11895) > 0 && waveIsIncoming)
+		//TEMPOROSS_ISTETHERED > 0 means tethered, 0 untethered. The exact value depends on what totem you're tethered to
+		if (client.getVarbitValue(TEMPOROSS_ISTETHERED) > 0 && waveIsIncoming)
 		{
 			updateTotemTimers(config.tetheredColor());
 		}
-		else if (client.getVarbitValue(11895) == 0 && waveIsIncoming)
+		else if (client.getVarbitValue(TEMPOROSS_ISTETHERED) == 0 && waveIsIncoming)
 		{
 			updateTotemTimers(config.waveTimerColor());
 		}
@@ -316,7 +319,7 @@ public class TemporossPlugin extends Plugin
 			totemMap.forEach((object, drawObject) ->
 			{
 				drawObject.setStartTime(Instant.now());
-				if (client.getVarbitValue(11895) > 0)
+				if (client.getVarbitValue(TEMPOROSS_ISTETHERED) > 0)
 				{
 					drawObject.setColor(config.tetheredColor());
 				}
@@ -350,7 +353,7 @@ public class TemporossPlugin extends Plugin
 	{
 		if (infoBox != null)
 		{
-			int rewardPoints = client.getVarbitValue(11936);
+			int rewardPoints = client.getVarbitValue(TEMPOROSS_REWARDPOOL);
 			infoBox.setRewardCount(rewardPoints);
 			infoBox.setToolTipText(rewardPoints  + " Reward Point" + (rewardPoints == 1 ? "" : "s"));
 		}
