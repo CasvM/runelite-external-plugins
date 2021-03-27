@@ -19,7 +19,7 @@ import net.runelite.client.ui.overlay.components.ProgressPieComponent;
 
 class TemporossOverlay extends Overlay
 {
-	private static final int MAX_DISTANCE = 2400;
+	private static final int MAX_DISTANCE = 3000;
 
 	private final Client client;
 	private final TemporossPlugin plugin;
@@ -60,7 +60,9 @@ class TemporossOverlay extends Overlay
 					}
 				}
 
-				if (config.useFireTimer() && drawObject.getDuration() > 0 && drawObject.getGameObject().getCanvasLocation() != null)
+				if (config.useFireTimer() && drawObject.getDuration() > 0 &&
+					drawObject.getGameObject().getCanvasLocation() != null &&
+					tile.getLocalLocation().distanceTo(playerLocation) < MAX_DISTANCE)
 				{
 					//modulo as the fire spreads every 24 seconds
 					float percent = ((now.toEpochMilli() - drawObject.getStartTime().toEpochMilli()) % drawObject.getDuration()) / (float) drawObject.getDuration();
@@ -89,7 +91,8 @@ class TemporossOverlay extends Overlay
 					OverlayUtil.renderPolygon(graphics, tilePoly, config.doubleSpotColor());
 				}
 
-				if (config.useDoubleSpotTimer())
+				if (config.useDoubleSpotTimer() &&
+					lp.distanceTo(playerLocation) < MAX_DISTANCE)
 				{
 					//testing shows a time between 20 and 27 seconds. even though it isn't fully accurate, it is still better than nothing
 					float percent = (now.toEpochMilli() - startTime.toEpochMilli()) / (float) 24000;

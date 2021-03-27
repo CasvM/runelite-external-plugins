@@ -80,7 +80,8 @@ public class TemporossPlugin extends Plugin
 	private final Map<GameObject, DrawObject> totemMap = new HashMap<>();
 
 	private TemporossInfoBox infoBox;
-	private TemporossInfoBox fishToCook;
+	private TemporossInfoBox fishInfoBox;
+	private TemporossInfoBox damageInfoBox;
 
 	private boolean waveIsIncoming;
 
@@ -177,11 +178,7 @@ public class TemporossPlugin extends Plugin
 
 		if (region != TEMPOROSS_REGION && previousRegion == TEMPOROSS_REGION)
 		{
-			npcs.clear();
-			removeFishToCookInfoBox();
-			totemMap.clear();
-			gameObjects.clear();
-			waveIsIncoming = false;
+			reset();
 		}
 
 	if (region == UNKAH_BOAT_REGION || region == UNKAH_REWARD_POOL_REGION)
@@ -242,14 +239,14 @@ public class TemporossPlugin extends Plugin
 	public void onGameTick(GameTick gameTick)
 	{
 		//updating every game tick so that the value stays correct even though items aren't changing in the inventory
-		updateFishToCook();
+		updateFishInfoBox();
 	}
 
-	public void updateFishToCook()
+	public void updateFishInfoBox()
 	{
 		ItemContainer inventory = client.getItemContainer(InventoryID.INVENTORY);
 
-		if (inventory == null || !config.cookIndicator())
+		if (inventory == null || (!config.fishIndicator() && !config.damageIndicator()))
 		{
 			return;
 		}
@@ -258,65 +255,46 @@ public class TemporossPlugin extends Plugin
 		int cookedFish = findAmountById(inventory.getItems(), 25565);
 		int crystalFish = findAmountById(inventory.getItems(), 25566);
 
-		int guaranteedDamage = crystalFish * 10 + cookedFish * 15 + uncookedFish * 10;
+		int damage = crystalFish * 10 + cookedFish * 15 + uncookedFish * 10;
 
-		if (fishToCook == null && guaranteedDamage == 0)
+		if (fishInfoBox == null && damage == 0)
 		{
 			//return if there are no fish and there isn't already a round going
 			return;
 		}
 
-		double bossHealth = 270 - (270 * (config.targetPercentage() / 100.0));
-
-		Widget energyWidget = client.getWidget(437, 37);
-		Widget stormWidget = client.getWidget(437, 57);
-
-		if (energyWidget != null && stormWidget != null)
-		{
-			//check for storm to be higher than 0 so that the infobox doesn't react in between phases
-			if (Integer.parseInt(stormWidget.getText().split(": ")[1].split("%")[0]) > 0)
-			{
-				bossHealth = Math.round(bossHealth * Integer.parseInt(energyWidget.getText().split(": ")[1].split("%")[0]) / 100.0);
-			}
-		}
-
-		int amountToFish = Math.max((int) Math.ceil((bossHealth - (guaranteedDamage + 5 * uncookedFish)) / 15.0), 0);
-
-		int amountToCook = amountToFish == 0 ? (int) Math.ceil((bossHealth - guaranteedDamage) / 5.0) : amountToFish + uncookedFish;
-
-		amountToCook = Math.max(amountToCook, 0);
-
 		String toolTip =
-			"Minimum amount of fish to catch: " +
-				amountToFish +
+			"Uncooked Fish: " +
+				(uncookedFish + crystalFish) +
 				"</br>" +
-				"Minimum amount of fish to cook: " +
-				amountToCook;
+				"Cooked Fish: " +
+				cookedFish;
 
-		if (fishToCook == null)
+		String infoBoxText = (uncookedFish + crystalFish) +	"/" + cookedFish;
+
+		if (fishInfoBox == null && config.fishIndicator())
 		{
-			addFishInfoBox(amountToFish + "/" + amountToCook);
+			addFishInfoBox(infoBoxText, toolTip);
+		}
+		else if (config.fishIndicator())
+		{
+			fishInfoBox.setToolTipText(toolTip);
+			fishInfoBox.setAlternateText(infoBoxText);
 		}
 
-		fishToCook.setToolTipText(toolTip);
+		toolTip = "Damage :" + damage;
+		infoBoxText = Integer.toString(damage);
 
-		if ((guaranteedDamage + uncookedFish * 5) > bossHealth && fishToCook.getRewardCount() < 0)
+		if (damageInfoBox == null && config.damageIndicator())
 		{
-			//change the infobox image when it first becomes possible to kill the boss
-			removeFishToCookInfoBox();
-			fishToCook = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "harpoonfish.png"), this, amountToCook);
-			fishToCook.setAlternateText(amountToFish + "/" + amountToCook);
-			infoBoxManager.addInfoBox(fishToCook);
+			addDamageInfoBox(infoBoxText, toolTip);
 		}
-		else if ((guaranteedDamage + uncookedFish * 5 < bossHealth) && fishToCook.getRewardCount() >= 0)
-		{
-			//edge case, some fish is dropped, or lost by a wave, so return to the not possible image
-			addFishInfoBox(amountToFish + "/" + amountToCook);
+		else if (config.damageIndicator()) {
+			damageInfoBox.setToolTipText("Damage :" + damage);
+			damageInfoBox.setAlternateText(Integer.toString(damage));
 		}
-		else
-		{
-			fishToCook.setAlternateText(amountToFish + "/" + amountToCook);
-		}
+
+
 	}
 
 	public void addTotemTimers()
@@ -372,22 +350,48 @@ public class TemporossPlugin extends Plugin
 		infoBox = null;
 	}
 
-	public void addFishInfoBox(String alternateText)
+	public void addFishInfoBox(String alternateText, String toolTipText)
 	{
-		infoBoxManager.removeInfoBox(fishToCook);
-		fishToCook = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "not_possible.png"), this, -1);
-		infoBoxManager.addInfoBox(fishToCook);
+		infoBoxManager.removeInfoBox(fishInfoBox);
+		fishInfoBox = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "harpoonfish.png"), this, -1);
+		fishInfoBox.setAlternateText(alternateText);
+		fishInfoBox.setToolTipText(toolTipText);
+		infoBoxManager.addInfoBox(fishInfoBox);
 	}
 
-	public void removeFishToCookInfoBox()
+	public void addDamageInfoBox(String alternateText, String toolTipText)
 	{
-		infoBoxManager.removeInfoBox(fishToCook);
-		fishToCook = null;
+		infoBoxManager.removeInfoBox(damageInfoBox);
+		damageInfoBox = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "damage.png"), this, -1);
+		damageInfoBox.setAlternateText(alternateText);
+		damageInfoBox.setToolTipText(toolTipText);
+		infoBoxManager.addInfoBox(damageInfoBox);
+	}
+
+	public void removeFishInfoBox()
+	{
+		infoBoxManager.removeInfoBox(fishInfoBox);
+		fishInfoBox = null;
+	}
+
+	public void removeDamageInfoBox() {
+		infoBoxManager.removeInfoBox(damageInfoBox);
+		damageInfoBox = null;
 	}
 
 	public int findAmountById(Item[] inventory, int id)
 	{
 		return (int) Arrays.stream(inventory).filter(item -> item.getId() == id).count();
+	}
+
+	public void reset()
+	{
+		npcs.clear();
+		removeFishInfoBox();
+		removeDamageInfoBox();
+		totemMap.clear();
+		gameObjects.clear();
+		waveIsIncoming = false;
 	}
 
 }

@@ -3,7 +3,7 @@
 - Highlighting of the double fishing spot, as well as showing a timer when the fishing spot will approximately deplete.
 - Highlighting of the fires, as well as a timer on when the fires will spread/when they will spawn from the cloud.
 - Highlighting when the wave will hit on the totem poles/masts from when the wave is first announced, and turning green when you are tethered.
-- Showing you how much fish in your inventory you need to cook for the boss' energy to go down to 0. (this only works in solo's, since the boss has higher hp with more people in the minigame)
+- Showing you how much cooked and uncooked you have fish in your inventory, as well as the damage that will inflict on the boss
 - At the ruins of Unkah, an infobox is showing the current reward points
 
 ### Pictures

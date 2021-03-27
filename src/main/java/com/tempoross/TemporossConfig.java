@@ -116,29 +116,23 @@ public interface TemporossConfig extends Config
 
 
 	@ConfigItem(
-		keyName = "cookIndicator",
-		name = "Show amount of fish to cook",
-		description = "Shows a number that indicates how much fish in your inventory you need to cook to get Tempoross' energy to 0 (works mainly in solo's)",
+		keyName = "fishIndicator",
+		name = "Show fish amount",
+		description = "Shows the amount of cooked, and uncooked fish in your inventory, and how much damage that does to the boss",
 		position = 9
 	)
 
-	default boolean cookIndicator()
+	default boolean fishIndicator()
 	{
 		return true;
 	}
 
-	@Range(
-		min = 0,
-		max = 100
-	)
 	@ConfigItem(
-		keyName = "targetPercentage",
-		name = "Target percentage",
-		description = "Target percentage of energy left, so that, the cook indicator shows how much fish you need to fish/cook to reach that percentage.",
+		keyName = "damageIndicator",
+		name = "Show damage",
+		description = "Shows the amount of damage you can do to the boss with the fish in your inventory",
 		position = 10
 	)
 
-	default int targetPercentage() {
-		return 0;
-	}
+	default boolean damageIndicator() { return true; }
 }
