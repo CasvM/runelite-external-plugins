@@ -135,4 +135,13 @@ public interface TemporossConfig extends Config
 	)
 
 	default boolean damageIndicator() { return true; }
+
+	@ConfigItem(
+		keyName = "phaseIndicator",
+		name = "Show phases",
+		description = "Shows which phase of tempoross you're on",
+		position = 11
+	)
+
+	default boolean phaseIndicator() { return true; }
 }

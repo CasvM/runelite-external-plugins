@@ -4,6 +4,7 @@
 - Highlighting of the fires, as well as a timer on when the fires will spread/when they will spawn from the cloud.
 - Highlighting when the wave will hit on the totem poles/masts from when the wave is first announced, and turning green when you are tethered.
 - Showing you how much cooked and uncooked you have fish in your inventory, as well as the damage that will inflict on the boss
+- Showing you on what phase of the boss you are on
 - At the ruins of Unkah, an infobox is showing the current reward points
 
 ### Pictures
@@ -15,8 +16,9 @@
 <img align="left" width="350" height="350" src="https://user-images.githubusercontent.com/20537001/112598358-c1f9ec00-8e0e-11eb-822e-e253208af8c3.png">
 <img align="left" width="350" height="20" src="https://user-images.githubusercontent.com/20537001/112599345-1ce01300-8e10-11eb-99b6-bf46f88092aa.png">
 <img align="left" width="350" height="20" src="https://user-images.githubusercontent.com/20537001/112599345-1ce01300-8e10-11eb-99b6-bf46f88092aa.png">
-<img align="left" width="350" height="200" src="https://user-images.githubusercontent.com/20537001/112734789-37b5a300-8f48-11eb-8a18-738b2d944b5f.png">
-<img align="left" width="350" height="200" src="https://user-images.githubusercontent.com/20537001/112734803-54ea7180-8f48-11eb-9d18-a53a3c689e95.png">
-<img align="left" width="350" height="20" src="https://user-images.githubusercontent.com/20537001/112599345-1ce01300-8e10-11eb-99b6-bf46f88092aa.png">
-<img align="left" width="350" height="20" src="https://user-images.githubusercontent.com/20537001/112599345-1ce01300-8e10-11eb-99b6-bf46f88092aa.png">
-<img align="center" width="350" height="250" src="https://user-images.githubusercontent.com/20537001/112598424-d938d980-8e0e-11eb-9b66-522048f4089b.png">
+<img align="left" width="350" height="200" src="https://user-images.githubusercontent.com/20537001/112739895-651a4500-8f78-11eb-8574-d18058f1c44d.png">
+<img align="left" width="350" height="200" src="https://user-images.githubusercontent.com/20537001/112739900-6fd4da00-8f78-11eb-9e1b-27233323e247.png">
+<img align="left" width="350" height="10" src="https://user-images.githubusercontent.com/20537001/112599345-1ce01300-8e10-11eb-99b6-bf46f88092aa.png">
+<img align="left" width="350" height="10" src="https://user-images.githubusercontent.com/20537001/112599345-1ce01300-8e10-11eb-99b6-bf46f88092aa.png">
+<img align="left" width="350" height="200" src="https://user-images.githubusercontent.com/20537001/112739903-7400f780-8f78-11eb-9520-cab36b2aa4ba.png">
+<img align="left" width="350" height="200" src="https://user-images.githubusercontent.com/20537001/112739938-d5c16180-8f78-11eb-94ed-8868d980b81b.png">

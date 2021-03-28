@@ -23,11 +23,10 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
+import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.VarbitChanged;
-import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
@@ -79,13 +78,16 @@ public class TemporossPlugin extends Plugin
 
 	private final Map<GameObject, DrawObject> totemMap = new HashMap<>();
 
-	private TemporossInfoBox infoBox;
+	private TemporossInfoBox rewardInfoBox;
 	private TemporossInfoBox fishInfoBox;
 	private TemporossInfoBox damageInfoBox;
+	private TemporossInfoBox phaseInfoBox;
 
 	private boolean waveIsIncoming;
 
 	private int previousRegion;
+
+	private int phase = 1;
 
 	@Override
 	protected void startUp()
@@ -176,21 +178,26 @@ public class TemporossPlugin extends Plugin
 
 		int region = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();;
 
+		log.info(region + " | " + previousRegion);
+
 		if (region != TEMPOROSS_REGION && previousRegion == TEMPOROSS_REGION)
 		{
 			reset();
 		}
 
-	if (region == UNKAH_BOAT_REGION || region == UNKAH_REWARD_POOL_REGION)
+		if (region == TEMPOROSS_REGION && previousRegion != TEMPOROSS_REGION)
 		{
-			if (infoBox == null)
+			setup();
+		}
+
+		if (region == UNKAH_BOAT_REGION || region == UNKAH_REWARD_POOL_REGION)
+		{
+			if (rewardInfoBox == null)
 			{
-				infoBox = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "tome_of_water.png"), this, client.getVarbitValue(TEMPOROSS_REWARDPOOL));
-				infoBoxManager.addInfoBox(infoBox);
+				addRewardInfoBox();
 			}
 
 			updateRewardInfoBox();
-
 		}
 		else
 		{
@@ -232,17 +239,18 @@ public class TemporossPlugin extends Plugin
 				waveIsIncoming = false;
 				removeTotemTimers();
 			}
+
+			if (chatMessage.getMessage().toLowerCase().contains("tempoross is vulnerable"))
+			{
+				phaseInfoBox.setRewardCount(++phase);
+				phaseInfoBox.setToolTipText("Phase " + phase);
+			}
+
 		}
 	}
 
 	@Subscribe
-	public void onGameTick(GameTick gameTick)
-	{
-		//updating every game tick so that the value stays correct even though items aren't changing in the inventory
-		updateFishInfoBox();
-	}
-
-	public void updateFishInfoBox()
+	public void onItemContainerChanged(ItemContainerChanged itemContainerChanged)
 	{
 		ItemContainer inventory = client.getItemContainer(InventoryID.INVENTORY);
 
@@ -257,9 +265,9 @@ public class TemporossPlugin extends Plugin
 
 		int damage = crystalFish * 10 + cookedFish * 15 + uncookedFish * 10;
 
-		if (fishInfoBox == null && damage == 0)
+		if (fishInfoBox == null && damageInfoBox == null)
 		{
-			//return if there are no fish and there isn't already a round going
+			//return if the player isn't fighting tempoross
 			return;
 		}
 
@@ -272,26 +280,20 @@ public class TemporossPlugin extends Plugin
 
 		String infoBoxText = (uncookedFish + crystalFish) +	"/" + cookedFish;
 
-		if (fishInfoBox == null && config.fishIndicator())
-		{
-			addFishInfoBox(infoBoxText, toolTip);
-		}
-		else if (config.fishIndicator())
+		if (config.fishIndicator())
 		{
 			fishInfoBox.setToolTipText(toolTip);
 			fishInfoBox.setAlternateText(infoBoxText);
 		}
 
-		toolTip = "Damage :" + damage;
+		toolTip = "Damage: " + damage;
 		infoBoxText = Integer.toString(damage);
 
-		if (damageInfoBox == null && config.damageIndicator())
+
+		if (config.damageIndicator())
 		{
-			addDamageInfoBox(infoBoxText, toolTip);
-		}
-		else if (config.damageIndicator()) {
-			damageInfoBox.setToolTipText("Damage :" + damage);
-			damageInfoBox.setAlternateText(Integer.toString(damage));
+			damageInfoBox.setToolTipText(toolTip);
+			damageInfoBox.setAlternateText(infoBoxText);
 		}
 
 
@@ -334,20 +336,29 @@ public class TemporossPlugin extends Plugin
 		totemMap.forEach(gameObjects::remove);
 	}
 
+	public void addRewardInfoBox()
+	{
+		int rewardPoints = client.getVarbitValue(TEMPOROSS_REWARDPOOL);
+		infoBoxManager.removeInfoBox(rewardInfoBox);
+		rewardInfoBox = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "tome_of_water.png"), this, rewardPoints);
+		rewardInfoBox.setToolTipText(rewardPoints  + " Reward Point" + (rewardPoints == 1 ? "" : "s"));
+		infoBoxManager.addInfoBox(rewardInfoBox);
+	}
+
 	public void updateRewardInfoBox()
 	{
-		if (infoBox != null)
+		if (rewardInfoBox != null)
 		{
 			int rewardPoints = client.getVarbitValue(TEMPOROSS_REWARDPOOL);
-			infoBox.setRewardCount(rewardPoints);
-			infoBox.setToolTipText(rewardPoints  + " Reward Point" + (rewardPoints == 1 ? "" : "s"));
+			rewardInfoBox.setRewardCount(rewardPoints);
+			rewardInfoBox.setToolTipText(rewardPoints  + " Reward Point" + (rewardPoints == 1 ? "" : "s"));
 		}
 	}
 
 	public void removeRewardInfoBox()
 	{
-		infoBoxManager.removeInfoBox(infoBox);
-		infoBox = null;
+		infoBoxManager.removeInfoBox(rewardInfoBox);
+		rewardInfoBox = null;
 	}
 
 	public void addFishInfoBox(String alternateText, String toolTipText)
@@ -359,6 +370,12 @@ public class TemporossPlugin extends Plugin
 		infoBoxManager.addInfoBox(fishInfoBox);
 	}
 
+	public void removeFishInfoBox()
+	{
+		infoBoxManager.removeInfoBox(fishInfoBox);
+		fishInfoBox = null;
+	}
+
 	public void addDamageInfoBox(String alternateText, String toolTipText)
 	{
 		infoBoxManager.removeInfoBox(damageInfoBox);
@@ -368,15 +385,24 @@ public class TemporossPlugin extends Plugin
 		infoBoxManager.addInfoBox(damageInfoBox);
 	}
 
-	public void removeFishInfoBox()
+	public void removeDamageInfoBox()
 	{
-		infoBoxManager.removeInfoBox(fishInfoBox);
-		fishInfoBox = null;
-	}
-
-	public void removeDamageInfoBox() {
 		infoBoxManager.removeInfoBox(damageInfoBox);
 		damageInfoBox = null;
+	}
+
+	public void addPhaseInfoBox()
+	{
+		infoBoxManager.removeInfoBox(phaseInfoBox);
+		phaseInfoBox = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "phases.png"), this, phase);
+		phaseInfoBox.setToolTipText("Phase " + phase);
+		infoBoxManager.addInfoBox(phaseInfoBox);
+	}
+
+	public void removePhaseInfoBox()
+	{
+		infoBoxManager.removeInfoBox(phaseInfoBox);
+		phaseInfoBox = null;
 	}
 
 	public int findAmountById(Item[] inventory, int id)
@@ -386,12 +412,33 @@ public class TemporossPlugin extends Plugin
 
 	public void reset()
 	{
-		npcs.clear();
+		log.info("reset");
 		removeFishInfoBox();
 		removeDamageInfoBox();
+		removePhaseInfoBox();
+		npcs.clear();
 		totemMap.clear();
 		gameObjects.clear();
 		waveIsIncoming = false;
+		phase = 1;
 	}
 
+	public void setup()
+	{
+		if (config.damageIndicator())
+		{
+			addDamageInfoBox("0", "Damage: 0");
+		}
+
+		if (config.fishIndicator())
+		{
+			String toolTip = "Uncooked Fish: " + 0 + "</br>" + "Cooked Fish: " + 0;
+			addFishInfoBox("0/0", toolTip);
+		}
+
+		if (config.phaseIndicator())
+		{
+			addPhaseInfoBox();
+		}
+	}
 }
