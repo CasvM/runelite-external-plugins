@@ -176,9 +176,7 @@ public class TemporossPlugin extends Plugin
 		int UNKAH_REWARD_POOL_REGION = 12588;
 		int UNKAH_BOAT_REGION = 12332;
 
-		int region = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();;
-
-		log.info(region + " | " + previousRegion);
+		int region = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();
 
 		if (region != TEMPOROSS_REGION && previousRegion == TEMPOROSS_REGION)
 		{
@@ -412,7 +410,6 @@ public class TemporossPlugin extends Plugin
 
 	public void reset()
 	{
-		log.info("reset");
 		removeFishInfoBox();
 		removeDamageInfoBox();
 		removePhaseInfoBox();
