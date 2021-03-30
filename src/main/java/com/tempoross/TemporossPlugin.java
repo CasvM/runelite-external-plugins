@@ -2,22 +2,17 @@ package com.tempoross;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provides;
-import java.awt.Color;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import javax.inject.Inject;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.InventoryID;
-import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
+import net.runelite.api.ItemID;
 import net.runelite.api.NPC;
+import net.runelite.api.NpcID;
+import net.runelite.api.NullObjectID;
+import net.runelite.api.ObjectID;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectDespawned;
@@ -29,18 +24,52 @@ import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.ui.overlay.infobox.InfoBoxManager;
 import net.runelite.client.util.ImageUtil;
+import javax.inject.Inject;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
-@Slf4j
 @PluginDescriptor(
-	name = "Tempoross"
+	name = "Tempoross",
+	description = "Useful information and tracking for the Tempoross skilling boss"
 )
 public class TemporossPlugin extends Plugin
 {
+	private static final String WAVE_INCOMING_MESSAGE = "a colossal wave closes in...";
+	private static final String WAVE_END_SAFE = "as the wave washes over you";
+	private static final String WAVE_END_DANGEROUS = "the wave slams into you";
+	private static final String TEMPOROSS_VULNERABLE_MESSAGE = "tempoross is vulnerable";
+
+	private static final int VARB_IS_TETHERED = 11895;
+	private static final int VARB_REWARD_POOL_NUMBER = 11936;
+
+	private static final int TEMPOROSS_REGION = 12078;
+	private static final int UNKAH_REWARD_POOL_REGION = 12588;
+	private static final int UNKAH_BOAT_REGION = 12332;
+
+	private static final int DAMAGE_PER_UNCOOKED = 10;
+	private static final int DAMAGE_PER_COOKED = 15;
+	private static final int DAMAGE_PER_CRYSTAL = 10;
+
+	private static final int REWARD_POOL_IMAGE_ID = ItemID.CASKET_25590;
+	private static final int DAMAGE_IMAGE_ID = ItemID.DRAGON_HARPOON;
+	private static final int FISH_IMAGE_ID = ItemID.HARPOONFISH;
+	private static final BufferedImage PHASE_IMAGE = ImageUtil.loadImageResource(TemporossPlugin.class, "phases.png");
+
+	private static final int FIRE_SPREAD_MILLIS = 24000;
+	private static final int FIRE_SPAWN_MILLIS = 9600;
+	private static final int FIRE_SPREADING_SPAWN_MILLIS = 1200;
+	private static final int WAVE_IMPACT_MILLIS = 7800;
+
 	@Inject
 	private Client client;
 
@@ -51,12 +80,18 @@ public class TemporossPlugin extends Plugin
 	private InfoBoxManager infoBoxManager;
 
 	@Inject
+	private ItemManager itemManager;
+
+	@Inject
 	private TemporossConfig config;
 
 	@Inject
 	private TemporossOverlay temporossOverlay;
 
-	private final Set<Integer> TEMPOROSS_GAMEOBJECTS = ImmutableSet.of(41005, 41006, 41007, 41354, 41355, 41352, 41353, 40996, 40997, 41010, 41011);
+	private final Set<Integer> TEMPOROSS_GAMEOBJECTS = ImmutableSet.of(
+		ObjectID.FIRE_41005, NullObjectID.NULL_41006, NullObjectID.NULL_41007, NullObjectID.NULL_41352,
+		NullObjectID.NULL_41353, NullObjectID.NULL_41354, NullObjectID.NULL_41355, ObjectID.DAMAGED_MAST_40996,
+		ObjectID.DAMAGED_MAST_40997, ObjectID.DAMAGED_TOTEM_POLE, ObjectID.DAMAGED_TOTEM_POLE_41011);
 	//41005 = fire burning
 	//41006 = shadow before fire is burning
 	//41007 = shadow just before fire is jumping over to a next spot
@@ -65,10 +100,7 @@ public class TemporossPlugin extends Plugin
 	//41010/41011 = a totem that is broken
 	//40996/40997 = a broken mast
 
-	private final Set<Integer> TEMPOROSS_NPCS = ImmutableSet.of(10569); //double fishing spot
-
-	static private final int TEMPOROSS_ISTETHERED = 11895;
-	static private final int TEMPOROSS_REWARDPOOL = 11936;
+	private final Set<Integer> TEMPOROSS_NPCS = ImmutableSet.of(NpcID.FISHING_SPOT_10569);
 
 	@Getter
 	private final Map<GameObject, DrawObject> gameObjects = new HashMap<>();
@@ -89,6 +121,12 @@ public class TemporossPlugin extends Plugin
 
 	private int phase = 1;
 
+	@Provides
+	TemporossConfig provideConfig(ConfigManager configManager)
+	{
+		return configManager.getConfig(TemporossConfig.class);
+	}
+
 	@Override
 	protected void startUp()
 	{
@@ -101,45 +139,35 @@ public class TemporossPlugin extends Plugin
 		overlayManager.remove(temporossOverlay);
 	}
 
-	@Provides
-	TemporossConfig provideConfig(ConfigManager configManager)
-	{
-		return configManager.getConfig(TemporossConfig.class);
-	}
-
 	@Subscribe
 	public void onGameObjectSpawned(GameObjectSpawned gameObjectSpawned)
 	{
-		if (TEMPOROSS_GAMEOBJECTS.contains(gameObjectSpawned.getGameObject().getId()))
+		if (!TEMPOROSS_GAMEOBJECTS.contains(gameObjectSpawned.getGameObject().getId()))
 		{
-			int duration = 7800;
-
-			switch (gameObjectSpawned.getGameObject().getId())
-			{
-				//duration in millis for different fire objects to have something happen to them:
-				//41005 -> spreads fire
-				//41006 -> spawns fire from shadow
-				//41007 -> spawns fire from shadow
-				case 41005:
-					duration = 24000;
-					break;
-				case 41006:
-					duration = 9600;
-					break;
-				case 41007:
-					duration = 1200;
-					break;
-				default:
-					//if it is not one of the three above, it is a totem/mast and should be added to the totem map, with 7800ms duration
-					totemMap.put(gameObjectSpawned.getGameObject(), new DrawObject(gameObjectSpawned.getTile(), gameObjectSpawned.getGameObject(), Instant.now(), duration, config.waveTimerColor()));
-			}
-
-			if (duration != 7800)
-			{
-				gameObjects.put(gameObjectSpawned.getGameObject(), new DrawObject(gameObjectSpawned.getTile(), gameObjectSpawned.getGameObject(), Instant.now(), duration, config.fireColor()));
-			}
-
+			return;
 		}
+
+		int duration;
+		switch (gameObjectSpawned.getGameObject().getId())
+		{
+			case ObjectID.FIRE_41005:
+				duration = FIRE_SPREAD_MILLIS;
+				break;
+			case NullObjectID.NULL_41006:
+				duration = FIRE_SPAWN_MILLIS;
+				break;
+			case NullObjectID.NULL_41007:
+				duration = FIRE_SPREADING_SPAWN_MILLIS;
+				break;
+			default:
+				//if it is not one of the three above, it is a totem/mast and should be added to the totem map, with 7800ms duration
+				totemMap.put(gameObjectSpawned.getGameObject(),
+					new DrawObject(gameObjectSpawned.getTile(), gameObjectSpawned.getGameObject(),
+						Instant.now(), WAVE_IMPACT_MILLIS, config.waveTimerColor()));
+				return;
+		}
+
+		gameObjects.put(gameObjectSpawned.getGameObject(), new DrawObject(gameObjectSpawned.getTile(), gameObjectSpawned.getGameObject(), Instant.now(), duration, config.fireColor()));
 	}
 
 	@Subscribe
@@ -172,30 +200,20 @@ public class TemporossPlugin extends Plugin
 			return;
 		}
 
-		int TEMPOROSS_REGION = 12078;
-		int UNKAH_REWARD_POOL_REGION = 12588;
-		int UNKAH_BOAT_REGION = 12332;
-
 		int region = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();
 
 		if (region != TEMPOROSS_REGION && previousRegion == TEMPOROSS_REGION)
 		{
 			reset();
 		}
-
-		if (region == TEMPOROSS_REGION && previousRegion != TEMPOROSS_REGION)
+		else if (region == TEMPOROSS_REGION && previousRegion != TEMPOROSS_REGION)
 		{
 			setup();
 		}
 
 		if (region == UNKAH_BOAT_REGION || region == UNKAH_REWARD_POOL_REGION)
 		{
-			if (rewardInfoBox == null)
-			{
-				addRewardInfoBox();
-			}
-
-			updateRewardInfoBox();
+			addRewardInfoBox();
 		}
 		else
 		{
@@ -208,125 +226,91 @@ public class TemporossPlugin extends Plugin
 	@Subscribe
 	public void onVarbitChanged(VarbitChanged varbitChanged)
 	{
-		updateRewardInfoBox();
+		addRewardInfoBox();
 
-		//TEMPOROSS_ISTETHERED > 0 means tethered, 0 untethered. The exact value depends on what totem you're tethered to
-		if (client.getVarbitValue(TEMPOROSS_ISTETHERED) > 0 && waveIsIncoming)
+		// The varb is a bitfield that refers to what totem/mast the player is tethered to,
+		// with each bit corresponding to a different object.
+		boolean tethered = client.getVarbitValue(VARB_IS_TETHERED) > 0;
+		if (waveIsIncoming && config.useWaveTimer())
 		{
-			updateTotemTimers(config.tetheredColor());
-		}
-		else if (client.getVarbitValue(TEMPOROSS_ISTETHERED) == 0 && waveIsIncoming)
-		{
-			updateTotemTimers(config.waveTimerColor());
+			addTotemTimers(false);
 		}
 	}
 
 	@Subscribe
 	public void onChatMessage(ChatMessage chatMessage)
 	{
-		if (chatMessage.getType() == ChatMessageType.GAMEMESSAGE)
+		if (chatMessage.getType() != ChatMessageType.GAMEMESSAGE)
 		{
-			if (chatMessage.getMessage().toLowerCase().contains("a colossal wave closes in..."))
-			{
-				waveIsIncoming = true;
-				addTotemTimers();
-			}
-			if (chatMessage.getMessage().toLowerCase().contains("as the wave washes over you") ||
-				chatMessage.getMessage().toLowerCase().contains("the wave slams into you"))
-			{
-				waveIsIncoming = false;
-				removeTotemTimers();
-			}
+			return;
+		}
 
-			if (chatMessage.getMessage().toLowerCase().contains("tempoross is vulnerable"))
+		String message = chatMessage.getMessage().toLowerCase();
+		if (message.contains(WAVE_INCOMING_MESSAGE))
+		{
+			waveIsIncoming = true;
+			if (config.useWaveTimer())
 			{
-				phaseInfoBox.setRewardCount(++phase);
-				phaseInfoBox.setToolTipText("Phase " + phase);
+				addTotemTimers(true);
 			}
-
+		}
+		else if (message.contains(WAVE_END_SAFE) || message.contains(WAVE_END_DANGEROUS))
+		{
+			waveIsIncoming = false;
+			removeTotemTimers();
+		}
+		else if (message.contains(TEMPOROSS_VULNERABLE_MESSAGE))
+		{
+			addPhaseInfoBox(++phase);
 		}
 	}
 
 	@Subscribe
-	public void onItemContainerChanged(ItemContainerChanged itemContainerChanged)
+	public void onItemContainerChanged(ItemContainerChanged event)
 	{
-		ItemContainer inventory = client.getItemContainer(InventoryID.INVENTORY);
-
-		if (inventory == null || (!config.fishIndicator() && !config.damageIndicator()))
+		if (event.getContainerId() != InventoryID.INVENTORY.getId() ||
+			(!config.fishIndicator() && !config.damageIndicator()) ||
+			(fishInfoBox == null && damageInfoBox == null))
 		{
 			return;
 		}
 
-		int uncookedFish = findAmountById(inventory.getItems(), 25564);
-		int cookedFish = findAmountById(inventory.getItems(), 25565);
-		int crystalFish = findAmountById(inventory.getItems(), 25566);
+		ItemContainer inventory = event.getItemContainer();
 
-		int damage = crystalFish * 10 + cookedFish * 15 + uncookedFish * 10;
-
-		if (fishInfoBox == null && damageInfoBox == null)
-		{
-			//return if the player isn't fighting tempoross
-			return;
-		}
-
-		String toolTip =
-			"Uncooked Fish: " +
-				(uncookedFish + crystalFish) +
-				"</br>" +
-				"Cooked Fish: " +
-				cookedFish;
-
-		String infoBoxText = (uncookedFish + crystalFish) +	"/" + cookedFish;
+		int uncookedFish = inventory.count(ItemID.RAW_HARPOONFISH);
+		int cookedFish = inventory.count(ItemID.HARPOONFISH);
+		int crystalFish = inventory.count(ItemID.CRYSTALLISED_HARPOONFISH);
 
 		if (config.fishIndicator())
 		{
-			fishInfoBox.setToolTipText(toolTip);
-			fishInfoBox.setAlternateText(infoBoxText);
+			addFishInfoBox(
+				(uncookedFish + crystalFish) +	"/" + cookedFish,
+				"Uncooked Fish: " + (uncookedFish + crystalFish) + "</br>Cooked Fish: " + cookedFish
+			);
 		}
-
-		toolTip = "Damage: " + damage;
-		infoBoxText = Integer.toString(damage);
-
 
 		if (config.damageIndicator())
 		{
-			damageInfoBox.setToolTipText(toolTip);
-			damageInfoBox.setAlternateText(infoBoxText);
+			int damage = uncookedFish * DAMAGE_PER_UNCOOKED
+				+ cookedFish * DAMAGE_PER_COOKED
+				+ crystalFish * DAMAGE_PER_CRYSTAL;
+
+			addDamageInfoBox(damage);
 		}
-
-
 	}
 
-	public void addTotemTimers()
+	public void addTotemTimers(boolean setStart)
 	{
-		if (config.useWaveTimer())
+		Color color = client.getVarbitValue(VARB_IS_TETHERED) > 0 ? config.tetheredColor() : config.waveTimerColor();
+		totemMap.forEach((object, drawObject) ->
 		{
-			totemMap.forEach((object, drawObject) ->
+			if (setStart)
 			{
 				drawObject.setStartTime(Instant.now());
-				if (client.getVarbitValue(TEMPOROSS_ISTETHERED) > 0)
-				{
-					drawObject.setColor(config.tetheredColor());
-				}
-				else
-				{
-					drawObject.setColor(config.waveTimerColor());
-				}
-				gameObjects.put(object, drawObject);
-			});
-		}
-	}
-
-	public void updateTotemTimers(Color color)
-	{
-		if (config.useWaveTimer())
-		{
-			totemMap.forEach((object, drawObject) ->
-			{
-				drawObject.setColor(color);
-				gameObjects.put(object, drawObject);
-			});
-		}
+			}
+			drawObject.setColor(color);
+			gameObjects.put(object, drawObject);
+		});
 	}
 
 	public void removeTotemTimers()
@@ -334,23 +318,23 @@ public class TemporossPlugin extends Plugin
 		totemMap.forEach(gameObjects::remove);
 	}
 
-	public void addRewardInfoBox()
+	private TemporossInfoBox createInfobox(BufferedImage image, String text, String tooltip)
 	{
-		int rewardPoints = client.getVarbitValue(TEMPOROSS_REWARDPOOL);
-		infoBoxManager.removeInfoBox(rewardInfoBox);
-		rewardInfoBox = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "tome_of_water.png"), this, rewardPoints);
-		rewardInfoBox.setToolTipText(rewardPoints  + " Reward Point" + (rewardPoints == 1 ? "" : "s"));
-		infoBoxManager.addInfoBox(rewardInfoBox);
+		TemporossInfoBox infoBox = new TemporossInfoBox(image, this);
+		infoBox.setText(text);
+		infoBox.setTooltip(tooltip);
+		return infoBox;
 	}
 
-	public void updateRewardInfoBox()
+	public void addRewardInfoBox()
 	{
-		if (rewardInfoBox != null)
-		{
-			int rewardPoints = client.getVarbitValue(TEMPOROSS_REWARDPOOL);
-			rewardInfoBox.setRewardCount(rewardPoints);
-			rewardInfoBox.setToolTipText(rewardPoints  + " Reward Point" + (rewardPoints == 1 ? "" : "s"));
-		}
+		int rewardPoints = client.getVarbitValue(VARB_REWARD_POOL_NUMBER);
+		infoBoxManager.removeInfoBox(rewardInfoBox);
+		rewardInfoBox = createInfobox(itemManager.getImage(REWARD_POOL_IMAGE_ID),
+			Integer.toString(rewardPoints),
+			rewardPoints  + " Reward Point" + (rewardPoints == 1 ? "" : "s"));
+
+		infoBoxManager.addInfoBox(rewardInfoBox);
 	}
 
 	public void removeRewardInfoBox()
@@ -359,12 +343,10 @@ public class TemporossPlugin extends Plugin
 		rewardInfoBox = null;
 	}
 
-	public void addFishInfoBox(String alternateText, String toolTipText)
+	public void addFishInfoBox(String text, String tooltip)
 	{
 		infoBoxManager.removeInfoBox(fishInfoBox);
-		fishInfoBox = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "harpoonfish.png"), this, -1);
-		fishInfoBox.setAlternateText(alternateText);
-		fishInfoBox.setToolTipText(toolTipText);
+		fishInfoBox = createInfobox(itemManager.getImage(FISH_IMAGE_ID), text, tooltip);
 		infoBoxManager.addInfoBox(fishInfoBox);
 	}
 
@@ -374,12 +356,10 @@ public class TemporossPlugin extends Plugin
 		fishInfoBox = null;
 	}
 
-	public void addDamageInfoBox(String alternateText, String toolTipText)
+	public void addDamageInfoBox(int damage)
 	{
 		infoBoxManager.removeInfoBox(damageInfoBox);
-		damageInfoBox = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "damage.png"), this, -1);
-		damageInfoBox.setAlternateText(alternateText);
-		damageInfoBox.setToolTipText(toolTipText);
+		damageInfoBox = createInfobox(itemManager.getImage(DAMAGE_IMAGE_ID), Integer.toString(damage), "Damage: " + damage);
 		infoBoxManager.addInfoBox(damageInfoBox);
 	}
 
@@ -389,11 +369,10 @@ public class TemporossPlugin extends Plugin
 		damageInfoBox = null;
 	}
 
-	public void addPhaseInfoBox()
+	public void addPhaseInfoBox(int phase)
 	{
 		infoBoxManager.removeInfoBox(phaseInfoBox);
-		phaseInfoBox = new TemporossInfoBox(ImageUtil.loadImageResource(getClass(), "phases.png"), this, phase);
-		phaseInfoBox.setToolTipText("Phase " + phase);
+		damageInfoBox = createInfobox(PHASE_IMAGE, Integer.toString(phase), "Phase " + phase);
 		infoBoxManager.addInfoBox(phaseInfoBox);
 	}
 
@@ -401,11 +380,6 @@ public class TemporossPlugin extends Plugin
 	{
 		infoBoxManager.removeInfoBox(phaseInfoBox);
 		phaseInfoBox = null;
-	}
-
-	public int findAmountById(Item[] inventory, int id)
-	{
-		return (int) Arrays.stream(inventory).filter(item -> item.getId() == id).count();
 	}
 
 	public void reset()
@@ -424,18 +398,17 @@ public class TemporossPlugin extends Plugin
 	{
 		if (config.damageIndicator())
 		{
-			addDamageInfoBox("0", "Damage: 0");
+			addDamageInfoBox(0);
 		}
 
 		if (config.fishIndicator())
 		{
-			String toolTip = "Uncooked Fish: " + 0 + "</br>" + "Cooked Fish: " + 0;
-			addFishInfoBox("0/0", toolTip);
+			addFishInfoBox("0/0", "Uncooked Fish: " + 0 + "</br>" + "Cooked Fish: " + 0);
 		}
 
 		if (config.phaseIndicator())
 		{
-			addPhaseInfoBox();
+			addPhaseInfoBox(phase);
 		}
 	}
 }

@@ -1,10 +1,9 @@
 package com.tempoross;
 
-import java.awt.Color;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
-import net.runelite.client.config.Range;
+import java.awt.Color;
 
 @ConfigGroup("tempoross")
 public interface TemporossConfig extends Config
@@ -15,7 +14,6 @@ public interface TemporossConfig extends Config
 		description = "Highlight fire",
 		position = 0
 	)
-
 	default boolean highlightFires()
 	{
 		return true;
@@ -27,7 +25,6 @@ public interface TemporossConfig extends Config
 		description = "Shows a timer that indicates when the damage of the fire attack will hit",
 		position = 1
 	)
-
 	default boolean useFireTimer()
 	{
 		return true;
@@ -39,7 +36,6 @@ public interface TemporossConfig extends Config
 		description = "Color of the Fire highlight tiles",
 		position = 2
 	)
-
 	default Color fireColor()
 	{
 		return Color.ORANGE;
@@ -73,7 +69,6 @@ public interface TemporossConfig extends Config
 		description = "Shows a timer that roughly indicates how long the double fishing spot lasts",
 		position = 5
 	)
-
 	default boolean useDoubleSpotTimer()
 	{
 		return true;
@@ -85,7 +80,6 @@ public interface TemporossConfig extends Config
 		description = "Shows a timer that indicates when the wave damage will hit on a totem pole",
 		position = 6
 	)
-
 	default boolean useWaveTimer()
 	{
 		return true;
@@ -97,7 +91,6 @@ public interface TemporossConfig extends Config
 		description = "Color of the Wave Timer when untethered",
 		position = 7
 	)
-
 	default Color waveTimerColor()
 	{
 		return Color.CYAN;
@@ -121,7 +114,6 @@ public interface TemporossConfig extends Config
 		description = "Shows the amount of cooked, and uncooked fish in your inventory, and how much damage that does to the boss",
 		position = 9
 	)
-
 	default boolean fishIndicator()
 	{
 		return true;
@@ -133,7 +125,6 @@ public interface TemporossConfig extends Config
 		description = "Shows the amount of damage you can do to the boss with the fish in your inventory",
 		position = 10
 	)
-
 	default boolean damageIndicator() { return true; }
 
 	@ConfigItem(
@@ -142,6 +133,5 @@ public interface TemporossConfig extends Config
 		description = "Shows which phase of tempoross you're on",
 		position = 11
 	)
-
 	default boolean phaseIndicator() { return true; }
 }
