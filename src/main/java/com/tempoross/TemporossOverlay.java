@@ -50,20 +50,14 @@ class TemporossOverlay extends Overlay
 		LocalPoint playerLocation = localPlayer.getLocalLocation();
 		Instant now = Instant.now();
 
-		if (config.highlightFires())
-		{
-			highlightFires(graphics, playerLocation, now);
-		}
+		highlightGameObjects(graphics, playerLocation, now);
+		highlightNpcs(graphics, playerLocation, now);
 
-		if (config.highlightDoubleSpot())
-		{
-			highlightDoubleSpots(graphics, playerLocation, now);
-		}
 
 		return null;
 	}
 
-	private void highlightFires(Graphics2D graphics, LocalPoint playerLocation, Instant now)
+	private void highlightGameObjects(Graphics2D graphics, LocalPoint playerLocation, Instant now)
 	{
 		plugin.getGameObjects().values().forEach((drawObject) ->
 		{
@@ -81,7 +75,7 @@ class TemporossOverlay extends Overlay
 				}
 			}
 
-			if (config.useFireTimer() && drawObject.getDuration() > 0 &&
+			if (drawObject.getDuration() > 0 &&
 				drawObject.getGameObject().getCanvasLocation() != null &&
 				tile.getLocalLocation().distanceTo(playerLocation) < MAX_DISTANCE)
 			{
@@ -98,7 +92,7 @@ class TemporossOverlay extends Overlay
 		});
 	}
 
-	private void highlightDoubleSpots(Graphics2D graphics, LocalPoint playerLocation, Instant now)
+	private void highlightNpcs(Graphics2D graphics, LocalPoint playerLocation, Instant now)
 	{
 		plugin.getNpcs().forEach((npc, startTime) ->
 		{
@@ -112,8 +106,7 @@ class TemporossOverlay extends Overlay
 				OverlayUtil.renderPolygon(graphics, tilePoly, config.doubleSpotColor());
 			}
 
-			if (config.useDoubleSpotTimer() &&
-				lp.distanceTo(playerLocation) < MAX_DISTANCE)
+			if (lp.distanceTo(playerLocation) < MAX_DISTANCE)
 			{
 				//testing shows a time between 20 and 27 seconds. even though it isn't fully accurate, it is still better than nothing
 				float percent = (now.toEpochMilli() - startTime.toEpochMilli()) / DOUBLE_SPOT_MOVE_MILLIS;

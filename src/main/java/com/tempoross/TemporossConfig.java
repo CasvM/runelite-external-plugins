@@ -11,7 +11,7 @@ public interface TemporossConfig extends Config
 	@ConfigItem(
 		keyName = "highlightFires",
 		name = "Highlight Fires",
-		description = "Highlight fire",
+		description = "Draws a square around the fires so that it is clearer where and where not to stand",
 		position = 0
 	)
 	default boolean highlightFires()
@@ -20,21 +20,10 @@ public interface TemporossConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "useFireTimer",
-		name = "Enable Fire Timer",
-		description = "Shows a timer that indicates when the damage of the fire attack will hit",
-		position = 1
-	)
-	default boolean useFireTimer()
-	{
-		return true;
-	}
-
-	@ConfigItem(
 		keyName = "fireColor",
 		name = "Fire Color",
 		description = "Color of the Fire highlight tiles",
-		position = 2
+		position = 1
 	)
 	default Color fireColor()
 	{
@@ -44,8 +33,8 @@ public interface TemporossConfig extends Config
 	@ConfigItem(
 		keyName = "highlightDoubleSpot",
 		name = "Highlight Double Fishing Spot",
-		description = "Highlights the fishing spot where you can get double fish",
-		position = 3
+		description = "Highlights the fishing spot where you can get double fish as well as a timer when it approximately depletes",
+		position = 2
 	)
 	default boolean highlightDoubleSpot()
 	{
@@ -56,7 +45,7 @@ public interface TemporossConfig extends Config
 		keyName = "doubleSpotColor",
 		name = "Double Spot Color",
 		description = "Color of the Double Spot highlight tiles",
-		position = 4
+		position = 3
 	)
 	default Color doubleSpotColor()
 	{
@@ -64,21 +53,10 @@ public interface TemporossConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "useDoubleSpotTimer",
-		name = "Enable Double Spot Timer",
-		description = "Shows a timer that roughly indicates how long the double fishing spot lasts",
-		position = 5
-	)
-	default boolean useDoubleSpotTimer()
-	{
-		return true;
-	}
-
-	@ConfigItem(
 		keyName = "useWaveTimer",
 		name = "Enable Wave Timer",
 		description = "Shows a timer that indicates when the wave damage will hit on a totem pole",
-		position = 6
+		position = 4
 	)
 	default boolean useWaveTimer()
 	{
@@ -89,7 +67,7 @@ public interface TemporossConfig extends Config
 		keyName = "waveTimerColor",
 		name = "Wave Timer Color",
 		description = "Color of the Wave Timer when untethered",
-		position = 7
+		position = 5
 	)
 	default Color waveTimerColor()
 	{
@@ -100,7 +78,7 @@ public interface TemporossConfig extends Config
 		keyName = "tetheredColor",
 		name = "Tethered Color",
 		description = "Color of the Wave Timer when tethered",
-		position = 8
+		position = 6
 	)
 	default Color tetheredColor()
 	{
@@ -112,7 +90,7 @@ public interface TemporossConfig extends Config
 		keyName = "fishIndicator",
 		name = "Show fish amount",
 		description = "Shows the amount of cooked, and uncooked fish in your inventory, and how much damage that does to the boss",
-		position = 9
+		position = 7
 	)
 	default boolean fishIndicator()
 	{
@@ -123,15 +101,21 @@ public interface TemporossConfig extends Config
 		keyName = "damageIndicator",
 		name = "Show damage",
 		description = "Shows the amount of damage you can do to the boss with the fish in your inventory",
-		position = 10
+		position = 8
 	)
-	default boolean damageIndicator() { return true; }
+	default boolean damageIndicator()
+	{
+		return true;
+	}
 
 	@ConfigItem(
 		keyName = "phaseIndicator",
 		name = "Show phases",
 		description = "Shows which phase of tempoross you're on",
-		position = 11
+		position = 9
 	)
-	default boolean phaseIndicator() { return true; }
+	default boolean phaseIndicator()
+	{
+		return true;
+	}
 }

@@ -100,8 +100,6 @@ public class TemporossPlugin extends Plugin
 	//41010/41011 = a totem that is broken
 	//40996/40997 = a broken mast
 
-	private final Set<Integer> TEMPOROSS_NPCS = ImmutableSet.of(NpcID.FISHING_SPOT_10569);
-
 	@Getter
 	private final Map<GameObject, DrawObject> gameObjects = new HashMap<>();
 
@@ -116,6 +114,7 @@ public class TemporossPlugin extends Plugin
 	private TemporossInfoBox phaseInfoBox;
 
 	private boolean waveIsIncoming;
+	private boolean nearRewardPool;
 
 	private int previousRegion;
 
@@ -161,26 +160,32 @@ public class TemporossPlugin extends Plugin
 				break;
 			default:
 				//if it is not one of the three above, it is a totem/mast and should be added to the totem map, with 7800ms duration
-				totemMap.put(gameObjectSpawned.getGameObject(),
-					new DrawObject(gameObjectSpawned.getTile(), gameObjectSpawned.getGameObject(),
-						Instant.now(), WAVE_IMPACT_MILLIS, config.waveTimerColor()));
+				if (config.useWaveTimer())
+				{
+					totemMap.put(gameObjectSpawned.getGameObject(),
+						new DrawObject(gameObjectSpawned.getTile(), gameObjectSpawned.getGameObject(),
+							Instant.now(), WAVE_IMPACT_MILLIS, config.waveTimerColor()));
+				}
 				return;
 		}
 
-		gameObjects.put(gameObjectSpawned.getGameObject(), new DrawObject(gameObjectSpawned.getTile(), gameObjectSpawned.getGameObject(), Instant.now(), duration, config.fireColor()));
+		if (config.highlightFires())
+		{
+			gameObjects.put(gameObjectSpawned.getGameObject(), new DrawObject(gameObjectSpawned.getTile(), gameObjectSpawned.getGameObject(), Instant.now(), duration, config.fireColor()));
+		}
 	}
 
 	@Subscribe
 	public void onGameObjectDespawned(GameObjectDespawned gameObjectDespawned)
 	{
-		GameObject object = gameObjectDespawned.getGameObject();
-		gameObjects.remove(object);
+		gameObjects.remove(gameObjectDespawned.getGameObject());
 	}
 
 	@Subscribe
 	public void onNpcSpawned(NpcSpawned npcSpawned)
 	{
-		if (TEMPOROSS_NPCS.contains(npcSpawned.getNpc().getId()))
+		if (NpcID.FISHING_SPOT_10569 == npcSpawned.getNpc().getId() &&
+			config.highlightDoubleSpot())
 		{
 			npcs.put(npcSpawned.getNpc(), Instant.now());
 		}
@@ -211,7 +216,9 @@ public class TemporossPlugin extends Plugin
 			setup();
 		}
 
-		if (region == UNKAH_BOAT_REGION || region == UNKAH_REWARD_POOL_REGION)
+		nearRewardPool = (region == UNKAH_BOAT_REGION || region == UNKAH_REWARD_POOL_REGION);
+
+		if (nearRewardPool)
 		{
 			addRewardInfoBox();
 		}
@@ -226,11 +233,13 @@ public class TemporossPlugin extends Plugin
 	@Subscribe
 	public void onVarbitChanged(VarbitChanged varbitChanged)
 	{
-		addRewardInfoBox();
+		if (nearRewardPool)
+		{
+			addRewardInfoBox();
+		}
 
 		// The varb is a bitfield that refers to what totem/mast the player is tethered to,
 		// with each bit corresponding to a different object.
-		boolean tethered = client.getVarbitValue(VARB_IS_TETHERED) > 0;
 		if (waveIsIncoming && config.useWaveTimer())
 		{
 			addTotemTimers(false);
@@ -284,7 +293,7 @@ public class TemporossPlugin extends Plugin
 		if (config.fishIndicator())
 		{
 			addFishInfoBox(
-				(uncookedFish + crystalFish) +	"/" + cookedFish,
+				(uncookedFish + crystalFish) + "/" + cookedFish,
 				"Uncooked Fish: " + (uncookedFish + crystalFish) + "</br>Cooked Fish: " + cookedFish
 			);
 		}
@@ -332,7 +341,7 @@ public class TemporossPlugin extends Plugin
 		infoBoxManager.removeInfoBox(rewardInfoBox);
 		rewardInfoBox = createInfobox(itemManager.getImage(REWARD_POOL_IMAGE_ID),
 			Integer.toString(rewardPoints),
-			rewardPoints  + " Reward Point" + (rewardPoints == 1 ? "" : "s"));
+			rewardPoints + " Reward Point" + (rewardPoints == 1 ? "" : "s"));
 
 		infoBoxManager.addInfoBox(rewardInfoBox);
 	}
@@ -372,7 +381,7 @@ public class TemporossPlugin extends Plugin
 	public void addPhaseInfoBox(int phase)
 	{
 		infoBoxManager.removeInfoBox(phaseInfoBox);
-		damageInfoBox = createInfobox(PHASE_IMAGE, Integer.toString(phase), "Phase " + phase);
+		phaseInfoBox = createInfobox(PHASE_IMAGE, Integer.toString(phase), "Phase " + phase);
 		infoBoxManager.addInfoBox(phaseInfoBox);
 	}
 
