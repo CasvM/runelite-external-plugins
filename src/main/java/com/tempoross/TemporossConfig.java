@@ -11,7 +11,7 @@ public interface TemporossConfig extends Config
 	@ConfigItem(
 		keyName = "highlightFires",
 		name = "Highlight Fires",
-		description = "Draws a square around the fires so that it is clearer where and where not to stand",
+		description = "Draws a square around the fires, and shows a timer when a fire spawns, or when a fire is going to spread",
 		position = 0
 	)
 	default boolean highlightFires()

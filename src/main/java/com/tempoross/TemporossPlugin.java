@@ -60,10 +60,12 @@ public class TemporossPlugin extends Plugin
 	private static final int DAMAGE_PER_COOKED = 15;
 	private static final int DAMAGE_PER_CRYSTAL = 10;
 
-	private static final int REWARD_POOL_IMAGE_ID = ItemID.CASKET_25590;
+	private static final int REWARD_POOL_IMAGE_ID = ItemID.TOME_OF_WATER;
 	private static final int DAMAGE_IMAGE_ID = ItemID.DRAGON_HARPOON;
 	private static final int FISH_IMAGE_ID = ItemID.HARPOONFISH;
 	private static final BufferedImage PHASE_IMAGE = ImageUtil.loadImageResource(TemporossPlugin.class, "phases.png");
+
+	private static final int FIRE_ID = 37582;
 
 	private static final int FIRE_SPREAD_MILLIS = 24000;
 	private static final int FIRE_SPAWN_MILLIS = 9600;
@@ -89,10 +91,12 @@ public class TemporossPlugin extends Plugin
 	private TemporossOverlay temporossOverlay;
 
 	private final Set<Integer> TEMPOROSS_GAMEOBJECTS = ImmutableSet.of(
-		ObjectID.FIRE_41005, NullObjectID.NULL_41006, NullObjectID.NULL_41007, NullObjectID.NULL_41352,
+		FIRE_ID, NullObjectID.NULL_41006, NullObjectID.NULL_41007, NullObjectID.NULL_41352,
 		NullObjectID.NULL_41353, NullObjectID.NULL_41354, NullObjectID.NULL_41355, ObjectID.DAMAGED_MAST_40996,
 		ObjectID.DAMAGED_MAST_40997, ObjectID.DAMAGED_TOTEM_POLE, ObjectID.DAMAGED_TOTEM_POLE_41011);
-	//41005 = fire burning
+	//Jagex changed the fire from 41005 (in objectID) to 37582 (not in ObjectID or nullobjectID),
+	//that's why int instead of an objectid is used.
+
 	//41006 = shadow before fire is burning
 	//41007 = shadow just before fire is jumping over to a next spot
 	//41354/41355 = a totem to grapple on to
@@ -136,6 +140,8 @@ public class TemporossPlugin extends Plugin
 	protected void shutDown()
 	{
 		overlayManager.remove(temporossOverlay);
+		reset();
+		removeRewardInfoBox();
 	}
 
 	@Subscribe
@@ -149,7 +155,7 @@ public class TemporossPlugin extends Plugin
 		int duration;
 		switch (gameObjectSpawned.getGameObject().getId())
 		{
-			case ObjectID.FIRE_41005:
+			case FIRE_ID:
 				duration = FIRE_SPREAD_MILLIS;
 				break;
 			case NullObjectID.NULL_41006:
