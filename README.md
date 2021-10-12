@@ -1,6 +1,7 @@
 # Tempoross Plugin
 ### Features
 - Highlighting of the double fishing spot, as well as showing a timer when the fishing spot will approximately deplete.
+- Option to notify when a double fishing spot appears.
 - Highlighting of the fires, as well as a timer on when the fires will spread/when they will spawn from the cloud.
 - Highlighting when the wave will hit on the totem poles/masts from when the wave is first announced, and turning green when you are tethered.
 - Showing you how much cooked and uncooked you have fish in your inventory, as well as the damage that will inflict on the boss
