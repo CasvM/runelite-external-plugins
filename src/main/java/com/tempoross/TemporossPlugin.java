@@ -25,6 +25,7 @@ import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.Notifier;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -86,6 +87,9 @@ public class TemporossPlugin extends Plugin
 
 	@Inject
 	private TemporossConfig config;
+
+	@Inject
+	private Notifier notifier;
 
 	@Inject
 	private TemporossOverlay temporossOverlay;
@@ -191,10 +195,17 @@ public class TemporossPlugin extends Plugin
 	@Subscribe
 	public void onNpcSpawned(NpcSpawned npcSpawned)
 	{
-		if (NpcID.FISHING_SPOT_10569 == npcSpawned.getNpc().getId() &&
-			config.highlightDoubleSpot())
+		if (NpcID.FISHING_SPOT_10569 == npcSpawned.getNpc().getId())
 		{
-			npcs.put(npcSpawned.getNpc(), Instant.now());
+			if (config.highlightDoubleSpot())
+			{
+				npcs.put(npcSpawned.getNpc(), Instant.now());
+			}
+
+			if (config.doubleSpotNotification())
+			{
+				notifier.notify("A double Harpoonfish spot has appeared.");
+			}
 		}
 	}
 
