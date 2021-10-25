@@ -129,6 +129,8 @@ public class TemporossPlugin extends Plugin
 
 	private int phase = 1;
 
+	private Instant waveIncomingStartTime;
+
 	@Provides
 	TemporossConfig provideConfig(ConfigManager configManager)
 	{
@@ -164,18 +166,29 @@ public class TemporossPlugin extends Plugin
 				duration = FIRE_SPREAD_MILLIS;
 				break;
 			case NullObjectID.NULL_41006:
+				if (config.fireNotification())
+				{
+					notifier.notify("A strong wind blows as clouds roll in...");
+				}
 				duration = FIRE_SPAWN_MILLIS;
 				break;
 			case NullObjectID.NULL_41007:
 				duration = FIRE_SPREADING_SPAWN_MILLIS;
 				break;
 			default:
-				//if it is not one of the three above, it is a totem/mast and should be added to the totem map, with 7800ms duration
+				//if it is not one of the above, it is a totem/mast and should be added to the totem map, with 7800ms duration, and the regular color
 				if (config.useWaveTimer())
 				{
 					totemMap.put(gameObjectSpawned.getGameObject(),
 						new DrawObject(gameObjectSpawned.getTile(), gameObjectSpawned.getGameObject(),
 							Instant.now(), WAVE_IMPACT_MILLIS, config.waveTimerColor()));
+
+					//after the totem is repaired the timer at the tomem/mast should update with the new object and color, as long as a wave is incoming as well
+					if (waveIsIncoming)
+					{
+						addTotemTimers(false);
+					}
+
 				}
 				return;
 		}
@@ -190,6 +203,7 @@ public class TemporossPlugin extends Plugin
 	public void onGameObjectDespawned(GameObjectDespawned gameObjectDespawned)
 	{
 		gameObjects.remove(gameObjectDespawned.getGameObject());
+		totemMap.remove(gameObjectDespawned.getGameObject());
 	}
 
 	@Subscribe
@@ -257,7 +271,7 @@ public class TemporossPlugin extends Plugin
 		}
 
 		// The varb is a bitfield that refers to what totem/mast the player is tethered to,
-		// with each bit corresponding to a different object.
+		// with each bit corresponding to a different object, so when tethered, the totem color should update
 		if (waveIsIncoming && config.useWaveTimer())
 		{
 			addTotemTimers(false);
@@ -280,15 +294,30 @@ public class TemporossPlugin extends Plugin
 			{
 				addTotemTimers(true);
 			}
+
+			if (config.waveNotification())
+			{
+				notifier.notify("A colossal wave closes in...");
+			}
 		}
 		else if (message.contains(WAVE_END_SAFE) || message.contains(WAVE_END_DANGEROUS))
 		{
 			waveIsIncoming = false;
 			removeTotemTimers();
 		}
-		else if (message.contains(TEMPOROSS_VULNERABLE_MESSAGE) && config.phaseIndicator())
+		else if (message.contains(TEMPOROSS_VULNERABLE_MESSAGE))
 		{
-			addPhaseInfoBox(++phase);
+			phase++;
+
+			if (config.phaseIndicator())
+			{
+				addPhaseInfoBox(phase);
+			}
+
+			if (config.vulnerableNotification())
+			{
+				notifier.notify("Tempoross is vulnerable.");
+			}
 		}
 	}
 
@@ -328,14 +357,35 @@ public class TemporossPlugin extends Plugin
 
 	public void addTotemTimers(boolean setStart)
 	{
-		Color color = client.getVarbitValue(VARB_IS_TETHERED) > 0 ? config.tetheredColor() : config.waveTimerColor();
 		totemMap.forEach((object, drawObject) ->
 		{
+			Color color;
+
+			switch (object.getId())
+			{
+				case ObjectID.DAMAGED_MAST_40996:
+				case ObjectID.DAMAGED_MAST_40997:
+				case ObjectID.DAMAGED_TOTEM_POLE:
+				case ObjectID.DAMAGED_TOTEM_POLE_41011:
+					color = config.poleBrokenColor();
+					break;
+				default:
+					color = config.waveTimerColor();
+			}
+
+			if (client.getVarbitValue(VARB_IS_TETHERED) > 0)
+			{
+				color = config.tetheredColor();
+			}
+
 			if (setStart)
 			{
-				drawObject.setStartTime(Instant.now());
+				waveIncomingStartTime = Instant.now();
 			}
+
+			drawObject.setStartTime(waveIncomingStartTime);
 			drawObject.setColor(color);
+
 			gameObjects.put(object, drawObject);
 		});
 	}
