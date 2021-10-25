@@ -10,7 +10,7 @@ repositories {
 	mavenCentral()
 }
 
-def runeLiteVersion = '1.7.2.2'
+def runeLiteVersion = '1.7.27'
 
 dependencies {
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
@@ -28,7 +28,7 @@ dependencies {
 }
 
 group = 'raidtracker'
-version = '1.4.2'
+version = '1.4.2.1'
 sourceCompatibility = '1.8'
 
 tasks.withType(JavaCompile) {

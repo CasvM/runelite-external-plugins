@@ -159,6 +159,7 @@ public class RaidTrackerPlugin extends Plugin
 
 				writerStarted = true;
 
+				//TODO: add so that the raid is added if resigning/dying in tob (check for raid completion in ui)
 				SwingUtilities.invokeLater(() -> {
 					panel.addDrop(raidTracker);
 					reset();
@@ -442,7 +443,7 @@ public class RaidTrackerPlugin extends Plugin
 			}
 
 			if (message.toLowerCase().contains("theatre of blood wave completion")) {
-				raidTracker.setRaidTime(stringTimeToSeconds(message.toLowerCase().split("time: ")[1].split("personal")[0]));
+				raidTracker.setRaidTime(stringTimeToSeconds(message.toLowerCase().split("time: ")[1].split("(personal")[0]));
 			}
 
 			if (raidTracker.isRaidComplete() && message.contains("Team size:")) {
