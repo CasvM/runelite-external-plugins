@@ -94,6 +94,7 @@ public class TemporossPlugin extends Plugin
 		FIRE_ID, NullObjectID.NULL_41006, NullObjectID.NULL_41007, NullObjectID.NULL_41352,
 		NullObjectID.NULL_41353, NullObjectID.NULL_41354, NullObjectID.NULL_41355, ObjectID.DAMAGED_MAST_40996,
 		ObjectID.DAMAGED_MAST_40997, ObjectID.DAMAGED_TOTEM_POLE, ObjectID.DAMAGED_TOTEM_POLE_41011);
+
 	//Jagex changed the fire from 41005 (in objectID) to 37582 (not in ObjectID or nullobjectID),
 	//that's why int instead of an objectid is used.
 
@@ -274,7 +275,7 @@ public class TemporossPlugin extends Plugin
 			waveIsIncoming = false;
 			removeTotemTimers();
 		}
-		else if (message.contains(TEMPOROSS_VULNERABLE_MESSAGE))
+		else if (message.contains(TEMPOROSS_VULNERABLE_MESSAGE) && config.phaseIndicator())
 		{
 			addPhaseInfoBox(++phase);
 		}
