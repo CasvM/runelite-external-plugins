@@ -130,6 +130,8 @@ public class raidUtils
                 int cutoff = config.FFACutoff();
 
                 Uniques.add(new UniqueDrop(name,drop,value,(config.defaultFFA() || lootSplit < cutoff), raidTracker.getTeamSize()));
+                System.out.println(raidTrackerPlugin);
+                //RaidTrackerPlugin.getFw().writeToFile(raidTracker);
                 break;
             }
             case 1 :
@@ -145,6 +147,7 @@ public class raidUtils
                 int cutoff = config.FFACutoff();
 
                 Uniques.add(new UniqueDrop(name,drop,value,(config.defaultFFA() || lootSplit < cutoff), raidTracker.getTeamSize()));
+                raidTrackerPlugin.getFw().writeToFile(raidTracker);
                 break;
             }
             default:
@@ -183,6 +186,7 @@ public class raidUtils
                 };
                 String drop = message.split(" found something special: ")[1];
                 nTradables.add(new UniqueDrop(name, drop));
+                raidTrackerPlugin.getFw().writeToFile(raidTracker);
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + tracker.getCurrentState().getRaidType());

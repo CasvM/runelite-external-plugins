@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
@@ -90,9 +91,12 @@ public class RaidTrackerTest extends TestCase
 	@Mock
 	@Bind
 	RaidTracker raidTracker;
+
 	@Mock
 	@Bind
 	RaidStateTracker RaidStateTracker;
+	
+	@Inject FileReadWriter fw;
 	/*@Test
 	public void TestLootSplits() {
 		//TODO: double purples
@@ -167,12 +171,14 @@ public class RaidTrackerTest extends TestCase
 	@Before
 	public void before()
 	{
+		MockitoAnnotations.initMocks(this);
 		Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
 		RaidTrackerPlugin.startUp();
 		when(RaidStateTracker.isInRaid()).thenReturn(true);
 		Player player = mock(Player.class);
 		when(client.getLocalPlayer()).thenReturn(player);
 		when(player.getName()).thenReturn("Test_user");
+		when(client.getUsername()).thenReturn("Test_user");
 		when(RaidStateTracker.getCurrentState()).thenReturn(new RaidState(false, 0));
 	};
 	@After
@@ -193,7 +199,6 @@ public class RaidTrackerTest extends TestCase
 	@Test
 	public void ChambersTest()
 	{
-		FileReadWriter fw = new FileReadWriter();
 		Player player = mock(Player.class);
 		when(client.getLocalPlayer()).thenReturn(player);
 		when(player.getName()).thenReturn("Test_user");
@@ -229,12 +234,11 @@ public class RaidTrackerTest extends TestCase
 		raidTracker.setTeamSize(5);
 		RaidTrackerPlugin.checkChatMessage(new ChatMessage(null, ChatMessageType.FRIENDSCHATNOTIFICATION, "", "Player 1 - Kodai insignia", "", 0),raidTracker);
 		RaidTrackerPlugin.checkChatMessage(new ChatMessage(null, ChatMessageType.FRIENDSCHATNOTIFICATION, "", "Player 2 - Twisted Bow", "", 0),raidTracker);
-		fw.writeToFile(raidTracker);
+
 	}
 	@Test
 	public void TobTest()
 	{
-		FileReadWriter fw = new FileReadWriter();
 		Player player = mock(Player.class);
 		when(client.getLocalPlayer()).thenReturn(player);
 		when(player.getName()).thenReturn("Test_user");
@@ -271,7 +275,6 @@ public class RaidTrackerTest extends TestCase
 	@Test
 	public void ToaTest()
 	{
-		FileReadWriter fw = new FileReadWriter();
 		Player player = mock(Player.class);
 		when(client.getLocalPlayer()).thenReturn(player);
 		when(player.getName()).thenReturn("Test_user");

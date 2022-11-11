@@ -317,7 +317,6 @@ public class RaidTrackerPanel extends PluginPanel {
                 case "Lil' Zik":
                 case "Tumeken's guardian":
                     l = filterUntradables(getFilteredRTList(), "pet", pDrop);
-                    System.out.println(l);
                     l2 = filterUntradables(getFilteredRTList(), "pet", pDrop, true);
                     isPet = true;
                     break;
@@ -1060,19 +1059,12 @@ public class RaidTrackerPanel extends PluginPanel {
         int ret = 0;
         if (loaded)
         {
-            System.out.println(f);
             for (RaidTracker rt : getFilteredRTList())
             {
                 switch (f)
                 {
                     case "pet" :
                     {
-                        System.out.println("test pets");
-                        System.out.println(own ?
-                                rt.getPets().stream().filter(nt -> nt.getUsername().equalsIgnoreCase(RaidTrackerPlugin.profileKey) && nt.getDrop().equalsIgnoreCase(filter)).count() :
-                                rt.getPets().stream().filter(nt -> nt.getDrop().equalsIgnoreCase(filter)).count()
-                        );
-                        System.out.println(filter);
                         ret += (int) (own ?
                                 rt.getPets().stream().filter(nt -> nt.getUsername().equalsIgnoreCase(RaidTrackerPlugin.profileKey) && nt.getDrop().equalsIgnoreCase(filter)).count() :
                                 rt.getPets().stream().filter(nt -> nt.getDrop().equalsIgnoreCase(filter)).count()
@@ -1081,7 +1073,6 @@ public class RaidTrackerPanel extends PluginPanel {
                     }
                     case "untradable" :
                     {
-                        System.out.println("test untradables");
                         ret += (int) (own ?
                             rt.getNTradables().stream().filter(nt -> nt.getUsername().equalsIgnoreCase(RaidTrackerPlugin.profileKey) && nt.getDrop().equalsIgnoreCase(filter)).count() :
                             rt.getNTradables().stream().filter(nt -> nt.getDrop().equalsIgnoreCase(filter)).count()

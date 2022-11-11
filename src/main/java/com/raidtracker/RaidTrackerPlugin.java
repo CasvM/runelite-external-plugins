@@ -61,13 +61,13 @@ public class RaidTrackerPlugin extends Plugin
 	private static final int REGION_LOBBY = 13454;
 	private static final int WIDGET_PARENT_ID = 481;
 	private static final int WIDGET_CHILD_ID = 40;
-
+	
 	private RaidState currentState = new RaidState(false, -1);
 
 	private EventBus eventBus;
 	@Inject
-	private Client client;
-
+	public Client client;
+	
 	@Inject
 	private ClientThread clientThread;
 
@@ -95,15 +95,16 @@ public class RaidTrackerPlugin extends Plugin
 
 	@Inject
 	public raidUtils RaidUtils;
-	@Setter
-	private FileReadWriter fw = new FileReadWriter();
+	@Inject
+	private FileReadWriter fw;
+	
 	@Setter
 	private uiUtils uiUtils = new uiUtils();
 	private boolean writerStarted = false;
 	public String RTName = "";
 
 	public static String profileKey;
-	private RaidTrackerPlugin RaidTrackerPlugin;
+	
 	public String getProfileKey(ConfigManager configManager)
 	{
 		return configManager.getRSProfileKey();
@@ -117,7 +118,7 @@ public class RaidTrackerPlugin extends Plugin
 	@Override
 	public void startUp() {
 		tracker.onPluginStart();
-		panel = new RaidTrackerPanel(itemManager, fw, config, clientThread,client);
+		panel = new RaidTrackerPanel(itemManager, getFw(), config, clientThread,client);
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "panel-icon.png");
 		navButton = NavigationButton.builder()
 				.tooltip("Raid Data Tracker")
@@ -148,7 +149,7 @@ public class RaidTrackerPlugin extends Plugin
 				//checkRaidPresence();
 			} else if (raidTracker.isRaidComplete() && !raidTracker.isChestOpened())
 			{
-				fw.writeToFile(raidTracker);
+				getFw().writeToFile(raidTracker);
 
 				writerStarted = true;
 
@@ -167,7 +168,7 @@ public class RaidTrackerPlugin extends Plugin
 		if (client.getLocalPlayer().getName() != null && RTName  == "")
 		{
 			RTName = toJagexName(client.getLocalPlayer().getName());
-			fw.updateUsername(getProfileKey(configManager));
+			getFw().updateUsername(getProfileKey(configManager));
 			profileKey = getProfileKey(configManager);
 			SwingUtilities.invokeLater(() -> panel.loadRTList());
 		};
@@ -223,7 +224,7 @@ public class RaidTrackerPlugin extends Plugin
 
 				raidTracker.setLootList((lootListFactory(toaChestContainer.getItems())));
 				raidTracker.inRaidType = 2;
-				fw.writeToFile(raidTracker);
+				getFw().writeToFile(raidTracker);
 
 				writerStarted = true;
 				SwingUtilities.invokeLater(() -> {
@@ -245,7 +246,7 @@ public class RaidTrackerPlugin extends Plugin
 
 				raidTracker.setLootList(lootListFactory(rewardItemContainer.getItems()));
 				raidTracker.inRaidType = 0;
-				fw.writeToFile(raidTracker);
+				getFw().writeToFile(raidTracker);
 
 				writerStarted = true;
 
@@ -269,7 +270,7 @@ public class RaidTrackerPlugin extends Plugin
 
 				raidTracker.setLootList(lootListFactory(rewardItemContainer.getItems()));
 				raidTracker.inRaidType = 1;
-				fw.writeToFile(raidTracker);
+				getFw().writeToFile(raidTracker);
 
 				writerStarted = true;
 
@@ -405,7 +406,6 @@ public class RaidTrackerPlugin extends Plugin
 			if (message.contains("count is:")) {
 				raidTracker.setChallengeMode(message.contains("Chambers of Xeric Challenge Mode"));
 				raidTracker.setCompletionCount(parseInt(message.split("count is:")[1].trim().replace(".", "")));
-				System.out.println(tracker);
 				if (tracker.getCurrentState().getRaidType() == 0)
 				{
 					raidTracker.setTotalPoints(client.getVarbitValue(Varbits.TOTAL_POINTS));
@@ -473,4 +473,14 @@ public class RaidTrackerPlugin extends Plugin
 
 	//from stackoverflow
 	public String unescapeJavaString(String st) {return uiUtils.unescapeJavaString(st);}
+	
+	public void setFw(FileReadWriter fw)
+	{
+		this.fw = fw;
+	}
+	
+	public FileReadWriter getFw()
+	{
+		return fw;
+	}
 }

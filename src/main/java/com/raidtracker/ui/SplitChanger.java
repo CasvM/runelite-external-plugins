@@ -210,8 +210,7 @@ public class SplitChanger extends JPanel {
 
         drop.setFfa(ffa.isSelected());
         drop.setSCount(Math.min(Math.max(1, Integer.parseInt(teamSize.getValue().toString())), 100));
-
-        System.out.println(editPrice);
+        
         if (updateall)
         {
             int value = drop.getValue();
@@ -223,7 +222,6 @@ public class SplitChanger extends JPanel {
         if (editPrice)
         {
             int value = parse(itemPrice.getText());
-            System.out.println(value);
             drop.setValue(value);
             splitReceived.setText(format(atleastZero(drop.isFfa() ? (isOwnDrop ? drop.getValue() : 0) : drop.getValue() / drop.getSCount())));
             splitReceived.setToolTipText(NumberFormat.getInstance().format(atleastZero(drop.isFfa() ? (isOwnDrop ? drop.getValue() : 0) : drop.getValue() / drop.getSCount())));
@@ -234,7 +232,6 @@ public class SplitChanger extends JPanel {
                 int value = parse(splitReceived.getText());
                 value = ffa.isSelected() ? value : value * drop.getSCount();
                 drop.setValue(value);
-                System.out.println(value);
                 itemPrice.setText(format(atleastZero(value)));
                 itemPrice.setToolTipText(NumberFormat.getInstance().format(atleastZero(value)));
             };
@@ -301,7 +298,7 @@ public class SplitChanger extends JPanel {
             dateText = "last year";
         }
         else {
-            dateText = "a long time ago";
+            dateText = "ages ago";
         }
 
         return dateText;
