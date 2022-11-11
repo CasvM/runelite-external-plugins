@@ -157,11 +157,11 @@ public class RaidTrackerPlugin extends Plugin
 					panel.addDrop(raidTracker);
 					reset();
 				});
-			};
-		};
-
-	};
-
+			}
+		}
+		
+	}
+	
 	@Subscribe
 	public void onPlayerSpawned(PlayerSpawned event)
 	{
@@ -171,7 +171,7 @@ public class RaidTrackerPlugin extends Plugin
 			getFw().updateUsername(getProfileKey(configManager));
 			profileKey = getProfileKey(configManager);
 			SwingUtilities.invokeLater(() -> panel.loadRTList());
-		};
+		}
 	}
 
 
@@ -179,7 +179,7 @@ public class RaidTrackerPlugin extends Plugin
 	public void onGameStateChanged(GameStateChanged event)
 	{
 
-		if (event.getGameState() == GameState.LOGGING_IN) {};
+		if (event.getGameState() == GameState.LOGGING_IN) {}
 		if (client.getGameState() == GameState.LOGGED_IN)
 		{
 			// skip event while the game decides if the player belongs in a raid or not
@@ -310,7 +310,7 @@ public class RaidTrackerPlugin extends Plugin
 
 					if (client.getLocalPlayer() != null && client.getLocalPlayer().getName() != null) {
 						raidTracker.setMvpInOwnName(getWidgetText(client.getWidget(459, 14)).equalsIgnoreCase(client.getLocalPlayer().getName()));
-					};
+					}
 				});
 
 				break;
@@ -356,20 +356,20 @@ public class RaidTrackerPlugin extends Plugin
 			if (message.startsWith(RAID_COMPLETE_MESSAGE))
 			{
 				raidTracker.setRaidComplete(true);
-			};
+			}
 			String[] pets = {"olmlet", "lil' zik", "tumeken's guardian"};
 			boolean hasPet = Utils.containsCaseInsensitive(message, pets);
 			if (raidTracker.isRaidComplete() && (hasPet || message.toLowerCase().contains("would have been followed")))
 			{
 				RaidUtils.parsePets(message, raidTracker, tracker);
 				return;
-			};
+			}
 			if (Utils.containsCaseInsensitive(Arrays.asList(ROOM_COMPLETE_MESSAGE), message))
 			{
 				RaidUtils.parseRaidTime(message, raidTracker, tracker);
 				return;
-			};
-
+			}
+			
 			if (
 					raidTracker.isRaidComplete() && // if the raid is complete
 					Utils.containsCaseInsensitive(Arrays.asList(SPECIAL_LOOT_MESSAGE), message) && // and it comtains special loot message
@@ -384,18 +384,18 @@ public class RaidTrackerPlugin extends Plugin
 					{
 						RaidUtils.parseUntradables(message, raidTracker, tracker);
 						return;
-					};
-				};
+					}
+				}
 				RaidUtils.parseRaidUniques(message, raidTracker, tracker);
 				return;
-			};
-
+			}
+			
 			if (raidTracker.isRaidComplete() && (message.startsWith(TWISTED_KIT_RECIPIENTS) || (raidTracker.isRaidComplete() && message.startsWith(DUST_RECIPIENTS))))
 			{
 				RaidUtils.parseUntradables(message, raidTracker, tracker);
 				return;
-			};
-
+			}
+			
 			if (raidTracker.isRaidComplete() && message.contains("Team size:"))
 			{
 				raidTracker.setRaidTime(stringTimeToSeconds(message.split("Duration: ")[1].split(" ")[0]));
@@ -414,8 +414,8 @@ public class RaidTrackerPlugin extends Plugin
 					raidTracker.setTeamSize(client.getVarbitValue(Varbits.RAID_PARTY_SIZE));
 					raidTracker.setRaidComplete(true);
 					raidTracker.setDate(System.currentTimeMillis());
-				};
-
+				}
+				
 				if (tracker.getCurrentState().getRaidType() == 2)
 				{
 					int[] playerVarbits = {
@@ -429,9 +429,9 @@ public class RaidTrackerPlugin extends Plugin
 					raidTracker.setRaidComplete(true);
 					raidTracker.setDate(System.currentTimeMillis());
 					raidTracker.setInvocation(client.getVarbitValue(Varbits.TOA_RAID_LEVEL));
-				};
-
-
+				}
+				
+				
 				if (tracker.getCurrentState().getRaidType() == 1)
 				{
 					int teamSize = 0;

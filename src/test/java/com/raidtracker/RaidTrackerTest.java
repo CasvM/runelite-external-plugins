@@ -31,7 +31,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
@@ -177,10 +176,12 @@ public class RaidTrackerTest extends TestCase
 		when(RaidStateTracker.isInRaid()).thenReturn(true);
 		Player player = mock(Player.class);
 		when(client.getLocalPlayer()).thenReturn(player);
-		when(player.getName()).thenReturn("Test_user");
-		when(client.getUsername()).thenReturn("Test_user");
+		when(player.getName()).thenReturn("Canvasba");
+		when(client.getUsername()).thenReturn("Canvasba");
 		when(RaidStateTracker.getCurrentState()).thenReturn(new RaidState(false, 0));
-	};
+		fw.updateUsername("Canvasba");
+	}
+	
 	@After
 	public void after()
 	{
@@ -201,7 +202,7 @@ public class RaidTrackerTest extends TestCase
 	{
 		Player player = mock(Player.class);
 		when(client.getLocalPlayer()).thenReturn(player);
-		when(player.getName()).thenReturn("Test_user");
+		when(player.getName()).thenReturn("Canvasba");
 		when(client.getVarbitValue(Varbits.TOTAL_POINTS)).thenReturn(50000);
 		when(client.getVarbitValue(Varbits.PERSONAL_POINTS)).thenReturn(1000000);
 		RaidTracker raidTracker = new RaidTracker();
@@ -226,9 +227,7 @@ public class RaidTrackerTest extends TestCase
 
 		when(RaidStateTracker.getCurrentState()).thenReturn(new RaidState(false, 0));
 		when(itemManager.search(anyString()))
-			.thenAnswer(invocation -> {
-				return ItemList.stream().filter(e -> e.getName().equalsIgnoreCase(invocation.getArgument(0, String.class))).collect(Collectors.toList());
-			});
+			.thenAnswer(invocation -> ItemList.stream().filter(e -> e.getName().equalsIgnoreCase(invocation.getArgument(0, String.class))).collect(Collectors.toList()));
 		RaidTrackerPlugin.checkChatMessage(new ChatMessage(null, ChatMessageType.GAMEMESSAGE, "", "Your completed Chambers of Xeric Challenge Mode count is: 57.", "", 0), raidTracker);
 
 		raidTracker.setTeamSize(5);
@@ -241,7 +240,7 @@ public class RaidTrackerTest extends TestCase
 	{
 		Player player = mock(Player.class);
 		when(client.getLocalPlayer()).thenReturn(player);
-		when(player.getName()).thenReturn("Test_user");
+		when(player.getName()).thenReturn("Canvasba");
 		RaidTracker raidTracker = new RaidTracker();
 		raidTracker.setRaidComplete(true);
 		List<ItemPrice> tobList = new ArrayList<>();
@@ -262,9 +261,7 @@ public class RaidTrackerTest extends TestCase
 		raidTracker.inRaidType = 1;
 		when(RaidStateTracker.getCurrentState()).thenReturn(new RaidState(false, 1));
 		when(itemManager.search(anyString()))
-			.thenAnswer(invocation -> {
-				return tobList.stream().filter(e -> e.getName().equalsIgnoreCase(invocation.getArgument(0, String.class))).collect(Collectors.toList());
-			});
+			.thenAnswer(invocation -> tobList.stream().filter(e -> e.getName().equalsIgnoreCase(invocation.getArgument(0, String.class))).collect(Collectors.toList()));
 		raidTracker.setTeamSize(5);
 
 		RaidTrackerPlugin.checkChatMessage( new ChatMessage(null, ChatMessageType.FRIENDSCHATNOTIFICATION, "", "Canvasba found something special: Lil\\u0027 Zik", "", 0), raidTracker);
@@ -277,7 +274,7 @@ public class RaidTrackerTest extends TestCase
 	{
 		Player player = mock(Player.class);
 		when(client.getLocalPlayer()).thenReturn(player);
-		when(player.getName()).thenReturn("Test_user");
+		when(player.getName()).thenReturn("Canvasba");
 		RaidTracker raidTracker = new RaidTracker();
 		raidTracker.setRaidComplete(true);
 		List<ItemPrice> toalist = new ArrayList<>();
@@ -297,23 +294,20 @@ public class RaidTrackerTest extends TestCase
 		raidTracker.inRaidType = 2;
 		when(RaidStateTracker.getCurrentState()).thenReturn(new RaidState(false, 2));
 		when(itemManager.search(anyString()))
-				.thenAnswer(invocation -> {
-					return toalist.stream().filter(e -> e.getName().equalsIgnoreCase(invocation.getArgument(0, String.class))).collect(Collectors.toList());
-				});
+				.thenAnswer(invocation -> toalist.stream().filter(e -> e.getName().equalsIgnoreCase(invocation.getArgument(0, String.class))).collect(Collectors.toList()));
 		raidTracker.setTeamSize(5);
 		RaidTrackerPlugin.checkChatMessage( new ChatMessage(null, ChatMessageType.FRIENDSCHATNOTIFICATION, "", "Canvasba found something special: Tumeken\\u0027s guardian", "", 0), raidTracker);
-		fw.writeToFile(raidTracker);
 		RaidTrackerPlugin.checkChatMessage(new ChatMessage(null, ChatMessageType.FRIENDSCHATNOTIFICATION, "", "Canvasba found something special: Tumekens Shadow", "", 0),raidTracker);
-		fw.writeToFile(raidTracker);
 		RaidTrackerPlugin.checkChatMessage(new ChatMessage(null, ChatMessageType.FRIENDSCHATNOTIFICATION, "", "Canvasba found something special: Osmumtuns Fang", "", 0),raidTracker);
-		fw.writeToFile(raidTracker);
-	};
+
+	}
+	
 	@Test
 	public void TestToaTimes()
 	{
 		RaidTracker raidTracker = new RaidTracker();
 		when(RaidStateTracker.getCurrentState()).thenReturn(new RaidState(true, 2));
-		String toaRooms[] = {
+		String[] toaRooms = {
 				"Path of Crondis", "Zebak", "Path of Apmeken", "Ba-Ba", "Path of Het", "Akkha", "Path of Scabaras", "Kephri", "The Wardens"
 		};
 		int index = 0;
@@ -330,13 +324,12 @@ public class RaidTrackerTest extends TestCase
 			RaidTrackerPlugin.checkChatMessage(message, raidTracker);
 			assertEquals(seconds, raidTracker.getRoomTimes()[index]);
 			index ++;
-		};
+		}
 		// full raid.
 		String message = "Challenge complete: The Wardens. Duration: <col=ef1020>3:53</col><br>Tombs of Amascut: Entry Mode challenge completion time: <col=ef1020>17:22</col>. Personal best: 16:40";
 		ChatMessage m  = new ChatMessage(null, ChatMessageType.GAMEMESSAGE, "", message, "", 0);
 		RaidTrackerPlugin.checkChatMessage(m, raidTracker);
-		System.out.println(Arrays.toString(raidTracker.getRoomTimes()));
-	};
+	}
 	/*@Test
 	public void TestDuration()
 	{

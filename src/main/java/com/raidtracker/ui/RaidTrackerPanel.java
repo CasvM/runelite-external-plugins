@@ -205,7 +205,7 @@ public class RaidTrackerPanel extends PluginPanel {
             case 2 :
                 break;
             default :
-                System.out.println("Error with user selection");
+                log.info("Error with user selection");
                 break;
         }
         panel.add(getUniquesPanel());
@@ -1045,11 +1045,12 @@ public class RaidTrackerPanel extends PluginPanel {
                 {
                     ArrayList<UniqueDrop> drops = rt.getUniques().stream().filter(d -> d.getDrop().equalsIgnoreCase(name)).collect(Collectors.toCollection(ArrayList::new));
                     ret += own ? drops.stream().filter(d -> d.getUsername().equalsIgnoreCase(RaidTrackerPlugin.profileKey)).count() : drops.size();
-                };
-            };
+                }
+            }
         }
         return ret;
-    };
+    }
+    
     public int filterRTListByName(String name)
     {
         return filterRTListByName(name, false);
@@ -1078,19 +1079,19 @@ public class RaidTrackerPanel extends PluginPanel {
                             rt.getNTradables().stream().filter(nt -> nt.getDrop().equalsIgnoreCase(filter)).count()
                         );
                     }
-                    default : {};
-                };
-            };
-        };
+                    default : {}
+                }
+            }
+        }
         return ret;
-    };
-
-
+    }
+    
+    
     public int filterUntradables(ArrayList<RaidTracker> l, String f, String filter)
     {
         return filterUntradables(l, f, filter, false);
-    };
-
+    }
+    
     public ArrayList<RaidTracker> filterPurples() {
         if (loaded) {
             return getFilteredRTList().stream().filter(RT -> !RT.getUniques().isEmpty()).collect(Collectors.toCollection(ArrayList::new));

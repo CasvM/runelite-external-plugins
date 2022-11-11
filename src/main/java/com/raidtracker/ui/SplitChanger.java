@@ -30,7 +30,7 @@ public class SplitChanger extends JPanel {
 
     @Getter
     public final UniqueDrop drop;
-    private uiUtils uiUtils = new uiUtils();
+    private final uiUtils uiUtils = new uiUtils();
     private final ItemManager itemManager;
     private final RaidTrackerPanel raidTrackerPanel;
     @Inject
@@ -160,12 +160,13 @@ public class SplitChanger extends JPanel {
         spinnerTextField.setColumns(2);
 
         teamSize.addChangeListener(e -> SplitComponentUpdated(itemPrice,splitReceived,ffa,teamSize));
-        ffa.addActionListener((e) -> {SplitComponentUpdated(itemPrice,splitReceived,ffa,teamSize);});
-        itemPrice.getDocument().addDocumentListener((SimpleDocumentListener) e -> {{SplitComponentUpdated(itemPrice,splitReceived,ffa,teamSize);};});
-        splitReceived.getDocument().addDocumentListener((SimpleDocumentListener) e -> {{SplitComponentUpdated(itemPrice,splitReceived,ffa,teamSize);};});
+        ffa.addActionListener((e) -> SplitComponentUpdated(itemPrice,splitReceived,ffa,teamSize));
+        itemPrice.getDocument().addDocumentListener((SimpleDocumentListener) e -> SplitComponentUpdated(itemPrice,splitReceived,ffa,teamSize));
+        splitReceived.getDocument().addDocumentListener((SimpleDocumentListener) e -> SplitComponentUpdated(itemPrice,splitReceived,ffa,teamSize));
         splitReceived.addKeyListener(new KeyListener() {
             @Override
-            public void keyTyped(KeyEvent e) {};
+            public void keyTyped(KeyEvent e) {}
+    
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER)
@@ -173,7 +174,8 @@ public class SplitChanger extends JPanel {
                     SplitComponentUpdated(itemPrice,splitReceived,ffa,teamSize, true);
                     e.consume();
                 }
-            };
+            }
+    
             @Override
             public void keyReleased(KeyEvent e) {}
         });
@@ -234,21 +236,22 @@ public class SplitChanger extends JPanel {
                 drop.setValue(value);
                 itemPrice.setText(format(atleastZero(value)));
                 itemPrice.setToolTipText(NumberFormat.getInstance().format(atleastZero(value)));
-            };
+            }
         } else
         {
             int value = drop.getValue();
             splitReceived.setText(format(atleastZero(drop.isFfa() ? (isOwnDrop ? drop.getValue() : 0) : drop.getValue() / drop.getSCount())));
             splitReceived.setToolTipText(NumberFormat.getInstance().format(atleastZero(drop.isFfa() ? (isOwnDrop ? drop.getValue() : 0) : drop.getValue() / drop.getSCount())));
-        };
+        }
         variablesChanged();
         locked = false;
-    };
+    }
+    
     private void SplitComponentUpdated(JTextField itemPrice, JTextField splitReceived, JCheckBox ffa, JSpinner teamSize)
     {
         SplitComponentUpdated(itemPrice, splitReceived, ffa, teamSize, false);
-    };
-
+    }
+    
     private JTextField getTextField()
     {
         JTextField textField = new JTextField();
@@ -396,15 +399,15 @@ public class SplitChanger extends JPanel {
             case 0 : return raidTrackerPanel.getCoxUniques();
             case 1 : return raidTrackerPanel.getTobUniques();
             case 2 : return raidTrackerPanel.getToaUniques();
-        };
+        }
         return raidTrackerPanel.getCoxUniques();
     }
 
     RaidTracker getRaidTracker()
     {
         return this.raidTracker;
-    };
-
+    }
+    
     //also from stackoverflow
     @FunctionalInterface
     public interface SimpleDocumentListener extends DocumentListener {

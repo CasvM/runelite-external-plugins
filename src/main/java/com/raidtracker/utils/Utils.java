@@ -17,7 +17,8 @@ public class Utils
             }
         }
         return false;
-    };
+    }
+    
     public static boolean containsCaseInsensitive(String s, String[] f)
     {
         for (String string : f)
@@ -28,5 +29,5 @@ public class Utils
             }
         }
         return false;
-    };
+    }
 }

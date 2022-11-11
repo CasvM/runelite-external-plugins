@@ -23,7 +23,7 @@ public class raidUtils
     private Client client;
 
     @Inject
-    private static RaidTrackerPlugin raidTrackerPlugin;
+    private RaidTrackerPlugin raidTrackerPlugin;
 
     @Inject
     private ConfigManager configManager;
@@ -31,7 +31,7 @@ public class raidUtils
     @Inject
     private RaidTrackerConfig config;
 
-    public static void parseRaidTime(String message, RaidTracker raidTracker, RaidStateTracker tracker)
+    public void parseRaidTime(String message, RaidTracker raidTracker, RaidStateTracker tracker)
     {
         switch (tracker.getCurrentState().getRaidType())
         {
@@ -48,13 +48,13 @@ public class raidUtils
                     {
                         Array.set(raidTracker.roomTimes, ArrayUtils.indexOf(coxRooms, room), raidTrackerPlugin.stringTimeToSeconds(timeString.split(" ")[timeString.split(" ").length - 1]));
                         return;
-                    };
+                    }
                     if (message.toLowerCase().contains(room))
                     {
                         Array.set(raidTracker.roomTimes, ArrayUtils.indexOf(coxRooms, room), raidTrackerPlugin.stringTimeToSeconds(timeString.split(" ")[0]));
                         return;
-                    };
-                };
+                    }
+                }
                 break;
             case 1 :
                 if (message.toLowerCase().contains("wave '")) {
@@ -101,16 +101,17 @@ public class raidUtils
                                         toaRooms.length + ArrayUtils.indexOf(bossRooms, room),
                                         (pathTime + raidTrackerPlugin.stringTimeToSeconds(t.split(" ")[0]))
                                 );
-                            };
+                            }
                         }
                         return;
-                    };
-                };
+                    }
+                }
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + tracker.getCurrentState().getRaidType());
         }
-    };
+    }
+    
     public void parseRaidUniques(String message, RaidTracker raidTracker, RaidStateTracker tracker)
     {
         String playername = toJagexName(client.getLocalPlayer().getName());
@@ -123,15 +124,14 @@ public class raidUtils
                 if (name == playername)
                 {
                     name =   raidTrackerPlugin.getProfileKey(configManager);
-                };
+                }
                 String drop = message.split(" - ")[1];
                 int value = itemManager.search(drop).get(0).getPrice();
                 int lootSplit = value / raidTracker.getTeamSize();
                 int cutoff = config.FFACutoff();
 
                 Uniques.add(new UniqueDrop(name,drop,value,(config.defaultFFA() || lootSplit < cutoff), raidTracker.getTeamSize()));
-                System.out.println(raidTrackerPlugin);
-                //RaidTrackerPlugin.getFw().writeToFile(raidTracker);
+                raidTrackerPlugin.getFw().writeToFile(raidTracker);
                 break;
             }
             case 1 :
@@ -140,7 +140,7 @@ public class raidUtils
                 if (name == playername)
                 {
                     name =   raidTrackerPlugin.getProfileKey(configManager);
-                };
+                }
                 String drop = message.split(" found something special: ")[1];
                 int value = itemManager.search(drop).get(0).getPrice();
                 int lootSplit = value / raidTracker.getTeamSize();
@@ -154,7 +154,8 @@ public class raidUtils
                 throw new IllegalStateException("Unexpected value: " + tracker.getCurrentState().getRaidType());
         }
         raidTracker.setUniques(Uniques);
-    };
+    }
+    
     public void parseUntradables(String message, RaidTracker raidTracker, RaidStateTracker tracker)
     {
         String playername = toJagexName(client.getLocalPlayer().getName());
@@ -173,9 +174,10 @@ public class raidUtils
                         if (recipient == playername)
                         {
                             recipient =   raidTrackerPlugin.getProfileKey(configManager);
-                        };
+                        }
                         nTradables.add(new UniqueDrop(recipient, isKit ? "Twisted Kit" : "Metamorphic Dust"));
                     }
+                    raidTrackerPlugin.getFw().writeToFile(raidTracker);
                 }
                 break;
             case 1 :
@@ -183,7 +185,7 @@ public class raidUtils
                 if (name == playername)
                 {
                     name =   raidTrackerPlugin.getProfileKey(configManager);
-                };
+                }
                 String drop = message.split(" found something special: ")[1];
                 nTradables.add(new UniqueDrop(name, drop));
                 raidTrackerPlugin.getFw().writeToFile(raidTracker);
@@ -204,8 +206,9 @@ public class raidUtils
             case 0 : drop = "Olmlet";break;
             case 1 : drop = "Lil' Zik";break;
             case 2 : drop = "Tumeken's guardian";break;
-        };
+        }
         ArrayList<UniqueDrop> pets = raidTracker.getPets();
         pets.add(new UniqueDrop(name, drop));
-    };
+        raidTrackerPlugin.getFw().writeToFile(raidTracker);
+    }
 }

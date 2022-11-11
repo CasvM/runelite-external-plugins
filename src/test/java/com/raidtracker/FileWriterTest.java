@@ -6,7 +6,6 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.raidtracker.filereadwriter.FileReadWriter;
 import net.runelite.api.Client;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,11 +24,12 @@ public class FileWriterTest
     {
         Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
         
-    };
+    }
+    
     @Test
     public void folderCreation()
     {
         when(client.getUsername()).thenReturn("Canvasba");
         fw.createFolders();
-    };
+    }
 }

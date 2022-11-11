@@ -1,6 +1,7 @@
 package com.raidtracker.utils;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Varbits;
 import net.runelite.api.coords.LocalPoint;
@@ -14,6 +15,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 @Singleton
+@Slf4j
 @RequiredArgsConstructor(onConstructor_ = @Inject)
 public class RaidStateTracker
 {
@@ -64,13 +66,13 @@ public class RaidStateTracker
             if (RaidChecks[i])
             {
                 RaidType = i;
-            };
-        };
+            }
+        }
         RaidState previousState = this.currentState;
         RaidState newState = new RaidState(inRaid, RaidType);
         if (!previousState.equals(newState))
         {
-            System.out.println("Raid State Changed " + newState);
+            log.info("Raid State Changed " + newState);
             this.currentState = newState;
             eventBus.post(new RaidStateChanged(previousState, newState));
         }

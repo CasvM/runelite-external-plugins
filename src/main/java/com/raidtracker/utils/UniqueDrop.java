@@ -26,7 +26,8 @@ public class UniqueDrop
         this.ffa = ffa;
         this.sCount = sCount;
         this.uniqueID = UUID.randomUUID().toString();
-    };
+    }
+    
     public UniqueDrop(String username, String drop)
     {
         this.username = username;
@@ -35,5 +36,5 @@ public class UniqueDrop
         this.ffa = true;
         this.sCount = -1;
         this.uniqueID = UUID.randomUUID().toString();
-    };
-};
+    }
+}

@@ -40,7 +40,8 @@ public class TestRaidTrackerPanel extends TestCase
     }
 
     @Test
-    public void TestFilter() throws ExecutionException, InterruptedException {
+    public void TestFilter()
+    {
         fw.updateUsername("Canvasba");
 
         ArrayList<RaidTracker> l = fw.readFromFile(1);

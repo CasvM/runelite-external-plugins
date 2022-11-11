@@ -8,7 +8,6 @@ import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import com.raidtracker.utils.RaidStateTracker;
 import net.runelite.api.Client;
-import net.runelite.api.Player;
 import net.runelite.client.RuneLite;
 import net.runelite.client.config.ConfigClient;
 import net.runelite.client.config.ConfigManager;
@@ -26,9 +25,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ScheduledExecutorService;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -95,7 +91,8 @@ public class GenericTests
         System.out.println(message.split("<br>")[0]);
         System.out.println(message.split("<br>")[1]);
         
-    };
+    }
+    
     @After
     public void after()
     {
@@ -111,11 +108,12 @@ public class GenericTests
         lootList.add(new RaidTrackerItem("item", 1, 1, 1));
         raidTracker.setLootList(lootList);
         System.out.println("here: " + gson.toJson(raidTracker.lootList));
-    };
+    }
+    
     @Test
-    public void ImporterTest() throws IOException
+    public void ImporterTest()
     {
         //when(client.getUsername()).thenReturn("Canvasba");
         //migrate(client);
-    };
+    }
 }

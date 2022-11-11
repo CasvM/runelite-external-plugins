@@ -13,4 +13,4 @@ public class RaidTrackerItem {
     public int id;
     public int quantity;
     public int price;
-};
+}

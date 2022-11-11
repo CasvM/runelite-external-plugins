@@ -11,8 +11,8 @@ public class uiUtils
             return "No time";
         }
         return seconds / 60 + ":" + (seconds % 60 < 10 ? "0" : "") + seconds % 60;
-    };
-
+    }
+    
     //from stackoverflow
     public String unescapeJavaString(String st) {
 
