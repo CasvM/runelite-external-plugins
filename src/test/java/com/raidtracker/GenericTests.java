@@ -6,6 +6,8 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
+import com.raidtracker.data.RaidTracker;
+import com.raidtracker.data.RaidTrackerItem;
 import com.raidtracker.utils.RaidStateTracker;
 import net.runelite.api.Client;
 import net.runelite.client.RuneLite;
@@ -22,11 +24,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ScheduledExecutorService;
 
-
+import com.raidtracker.io.IOUtils;
 @RunWith(MockitoJUnitRunner.class)
 public class GenericTests
 {
@@ -76,6 +77,8 @@ public class GenericTests
     
     @Inject
     RaidTrackerPlugin RaidTrackerPlugin;
+    @Inject
+    IOUtils ioUtils;
     
     @Mock
     @Bind
@@ -107,13 +110,12 @@ public class GenericTests
         lootList.add(new RaidTrackerItem("item", 1, 1, 1));
         lootList.add(new RaidTrackerItem("item", 1, 1, 1));
         raidTracker.setLootList(lootList);
-        System.out.println("here: " + gson.toJson(raidTracker.lootList));
+        System.out.println("here: " + gson.toJson(raidTracker.getLootList()));
     }
     
     @Test
-    public void ImporterTest()
+    public void ioTests()
     {
-        //when(client.getUsername()).thenReturn("Canvasba");
-        //migrate(client);
+        ioUtils.ensurePath("test/test/test");
     }
 }

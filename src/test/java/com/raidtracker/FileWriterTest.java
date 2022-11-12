@@ -4,7 +4,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.raidtracker.filereadwriter.FileReadWriter;
+import com.raidtracker.io.FileReadWriter;
 import net.runelite.api.Client;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,9 +26,11 @@ public class FileWriterTest
         
     }
     
+    @SuppressWarnings("deprecation")
     @Test
     public void folderCreation()
     {
+        //noinspection deprecation
         when(client.getUsername()).thenReturn("Canvasba");
         fw.createFolders();
     }

@@ -2,7 +2,11 @@ package com.raidtracker;
 
 import com.google.inject.Inject;
 import com.google.inject.Provides;
-import com.raidtracker.filereadwriter.FileReadWriter;
+import com.raidtracker.data.RaidState;
+import com.raidtracker.data.RaidTracker;
+import com.raidtracker.data.RaidTrackerItem;
+import com.raidtracker.io.FileReadWriter;
+import com.raidtracker.io.IOUtils;
 import com.raidtracker.ui.RaidTrackerPanel;
 import com.raidtracker.utils.*;
 import lombok.Setter;
@@ -16,6 +20,7 @@ import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -94,12 +99,14 @@ public class RaidTrackerPlugin extends Plugin
 	private NavigationButton navButton;
 
 	@Inject
-	public raidUtils RaidUtils;
+	public com.raidtracker.utils.RaidUtils RaidUtils;
 	@Inject
 	private FileReadWriter fw;
 	
+	@Inject
+	private IOUtils ioUtils;
 	@Setter
-	private uiUtils uiUtils = new uiUtils();
+	private UIUtils uiUtils = new UIUtils();
 	private boolean writerStarted = false;
 	public String RTName = "";
 
@@ -134,7 +141,17 @@ public class RaidTrackerPlugin extends Plugin
 		tracker.onPluginStop();
 		reset();
 	}
-
+	
+	@Subscribe
+	public void onConfigChanged(ConfigChanged configChanged)
+	{
+		if (!configChanged.getGroup().equals("raidtracker"))
+		{
+			return;
+		}
+		ioUtils.checkUsernames(configChanged.getOldValue(), configChanged.getNewValue());
+	}
+	
 	@Subscribe
 	public void onVarbitChanged(VarbitChanged event)
 	{
@@ -142,7 +159,7 @@ public class RaidTrackerPlugin extends Plugin
 
 		boolean tempInRaid = tracker.isInRaid();
 
-		if (tempInRaid ^ raidTracker.inRaid)
+		if (tempInRaid ^ raidTracker.isInRaid())
 		{
 			if (tempInRaid && raidTracker.isLoggedIn())
 			{
@@ -223,7 +240,7 @@ public class RaidTrackerPlugin extends Plugin
 
 
 				raidTracker.setLootList((lootListFactory(toaChestContainer.getItems())));
-				raidTracker.inRaidType = 2;
+				raidTracker.setInRaidType(2);
 				getFw().writeToFile(raidTracker);
 
 				writerStarted = true;
@@ -245,7 +262,7 @@ public class RaidTrackerPlugin extends Plugin
 
 
 				raidTracker.setLootList(lootListFactory(rewardItemContainer.getItems()));
-				raidTracker.inRaidType = 0;
+				raidTracker.setInRaidType(0);
 				getFw().writeToFile(raidTracker);
 
 				writerStarted = true;
@@ -269,7 +286,7 @@ public class RaidTrackerPlugin extends Plugin
 				}
 
 				raidTracker.setLootList(lootListFactory(rewardItemContainer.getItems()));
-				raidTracker.inRaidType = 1;
+				raidTracker.setInRaidType(1);
 				getFw().writeToFile(raidTracker);
 
 				writerStarted = true;
@@ -289,23 +306,21 @@ public class RaidTrackerPlugin extends Plugin
 				String[] players;
 
 				clientThread.invokeLater(() -> {
-
-					raidTracker.tobPlayers = new String[]{
+					raidTracker.setTobPlayers(new String[]{
 							getWidgetText(client.getWidget(459, 22)),
 							getWidgetText(client.getWidget(459, 24)),
 							getWidgetText(client.getWidget(459, 26)),
 							getWidgetText(client.getWidget(459, 28)),
 							getWidgetText(client.getWidget(459, 30))
-					};
-
-					raidTracker.tobDeaths = new int[]{
+					});
+					raidTracker.setTobDeaths(new int[]{
 							getWidgetNumber(client.getWidget(459, 23)),
 							getWidgetNumber(client.getWidget(459, 25)),
 							getWidgetNumber(client.getWidget(459, 27)),
 							getWidgetNumber(client.getWidget(459, 29)),
 							getWidgetNumber(client.getWidget(459, 31))
-					};
-
+					});
+					
 					raidTracker.setMvp(getWidgetText(client.getWidget(459, 14)));
 
 					if (client.getLocalPlayer() != null && client.getLocalPlayer().getName() != null) {

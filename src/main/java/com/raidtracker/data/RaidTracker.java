@@ -1,6 +1,5 @@
-package com.raidtracker;
+package com.raidtracker.data;
 
-import com.raidtracker.utils.UniqueDrop;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,11 +16,6 @@ public class RaidTracker {
     boolean loggedIn = false;
     boolean challengeMode = false;
     boolean inRaid = false;
-    /*
-    boolean inRaidCox = false;
-    boolean inRaidTob = false;
-    boolean inRaidToa = false;
-    */
     // Global
     public int[] roomTimes = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
     int teamSize = -1;

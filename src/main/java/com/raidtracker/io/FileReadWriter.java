@@ -1,12 +1,13 @@
-package com.raidtracker.filereadwriter;
+package com.raidtracker.io;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
-import com.raidtracker.RaidTracker;
-import com.raidtracker.utils.UniqueDrop;
+import com.raidtracker.data.RaidTracker;
+import com.raidtracker.data.OldRaidTracker;
+import com.raidtracker.data.UniqueDrop;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -24,6 +25,7 @@ import java.util.UUID;
 import static net.runelite.client.RuneLite.RUNELITE_DIR;
 import static net.runelite.client.util.Text.toJagexName;
 
+@SuppressWarnings("deprecation")
 @Slf4j
 public class FileReadWriter {
     private static final ArrayList<String> usernames = new ArrayList<>();
@@ -247,8 +249,10 @@ public class FileReadWriter {
         return RUNELITE_DIR + File.separator + "raid-data tracker" + File.separator + toJagexName(n);
     }
     
+    @SuppressWarnings("deprecation")
     public boolean oldExists()
     {
+        //noinspection deprecation
         return (Files.isDirectory(Paths.get(getPath(client.getUsername()))));
     }
     
@@ -258,9 +262,10 @@ public class FileReadWriter {
         return (usernames.contains(toJagexName(s)) ? profileKey : toJagexName(s));
     }
     
+    @SuppressWarnings("deprecation")
     public void migrate() throws IOException
     {
-        String basePath = getPath(client.getUsername());
+        @SuppressWarnings("deprecation") String basePath = getPath(client.getUsername());
         String[] dirs = {"cox", "tob"};
         for (String dir : dirs)
         {
@@ -322,13 +327,13 @@ public class FileReadWriter {
                                     newTracker.setLoggedIn(newTracker.isLoggedIn() || oldTracker.isLoggedIn());
                                     newTracker.setChallengeMode(newTracker.isChallengeMode() || oldTracker.isChallengeMode());
                                     newTracker.setInRaid(true);
-                                    newTracker.setKillCountID(oldTracker.killCountID);
+                                    newTracker.setKillCountID(oldTracker.getKillCountID());
                                     newTracker.setTeamSize(Math.max(oldTracker.getTeamSize(), newTracker.getTeamSize()));
                                     newTracker.setRaidTime(newTracker.getRaidTime() == -1 ? oldTracker.getRaidTime() : newTracker.getRaidTime());
                                     newTracker.setCompletionCount(newTracker.getCompletionCount() == -1 ? oldTracker.getCompletionCount() : newTracker.getCompletionCount());
-                                    newTracker.setDate(oldTracker.date);
+                                    newTracker.setDate(oldTracker.getDate());
                                     newTracker.setMvp(newTracker.getMvp().equalsIgnoreCase("") ? oldTracker.getMvp() : newTracker.getMvp());
-                                    newTracker.setMvpInOwnName(newTracker.isMvpInOwnName() || oldTracker.mvpInOwnName);
+                                    newTracker.setMvpInOwnName(newTracker.isMvpInOwnName() || oldTracker.isMvpInOwnName());
                                     newTracker.setInRaidType(oldTracker.isInRaidChambers() ? 0 : 1);
                                     newTracker.setTotalPoints(newTracker.getTotalPoints() == -1 ? oldTracker.getTotalPoints() : newTracker.getTotalPoints());
                                     newTracker.setPersonalPoints((newTracker.getPersonalPoints() == -1 ? oldTracker.getPersonalPoints() : newTracker.getPersonalPoints()));
@@ -337,7 +342,7 @@ public class FileReadWriter {
                                     {
                                         newTracker.setLootList(oldTracker.getLootList());
                                     }
-                                    if (oldTracker.inRaidChambers)
+                                    if (oldTracker.isInRaidChambers())
                                     {
                                         times = new int[]{
                                                 oldTracker.getUpperTime(),

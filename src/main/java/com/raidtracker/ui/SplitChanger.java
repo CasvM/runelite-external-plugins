@@ -1,10 +1,11 @@
 package com.raidtracker.ui;
 
 import com.google.inject.Inject;
-import com.raidtracker.RaidTracker;
+import com.raidtracker.data.RaidTracker;
 import com.raidtracker.RaidTrackerPlugin;
-import com.raidtracker.utils.UniqueDrop;
-import com.raidtracker.utils.uiUtils;
+import com.raidtracker.data.RaidUniques;
+import com.raidtracker.data.UniqueDrop;
+import com.raidtracker.utils.UIUtils;
 import lombok.Getter;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
@@ -30,7 +31,7 @@ public class SplitChanger extends JPanel {
 
     @Getter
     public final UniqueDrop drop;
-    private final uiUtils uiUtils = new uiUtils();
+    private final UIUtils uiUtils = new UIUtils();
     private final ItemManager itemManager;
     private final RaidTrackerPanel raidTrackerPanel;
     @Inject

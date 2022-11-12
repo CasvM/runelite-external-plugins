@@ -2,9 +2,12 @@ package com.raidtracker.ui;
 
 
 import com.raidtracker.*;
-import com.raidtracker.filereadwriter.FileReadWriter;
-import com.raidtracker.utils.UniqueDrop;
-import com.raidtracker.utils.uiUtils;
+import com.raidtracker.data.RaidTracker;
+import com.raidtracker.data.RaidTrackerItem;
+import com.raidtracker.data.RaidUniques;
+import com.raidtracker.io.FileReadWriter;
+import com.raidtracker.data.UniqueDrop;
+import com.raidtracker.utils.UIUtils;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +50,7 @@ public class RaidTrackerPanel extends PluginPanel {
     private final RaidTrackerConfig config;
     private final ClientThread clientThread;
     private final Client client;
-    private final uiUtils uiUtils = new uiUtils();
+    private final UIUtils uiUtils = new UIUtils();
     @Setter
     private ArrayList<RaidTracker> RTList;
     private ArrayList<RaidTracker> tobRTList;

@@ -1,5 +1,7 @@
 package com.raidtracker.utils;
 
+import com.raidtracker.data.RaidRoom;
+import com.raidtracker.data.RaidState;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -20,7 +22,6 @@ import javax.inject.Singleton;
 public class RaidStateTracker
 {
     private final EventBus eventBus;
-    private static final int REGION_LOBBY = 13454;
     private static final int WIDGET_PARENT_ID = 481;
     private static final int WIDGET_CHILD_ID = 40;
 
@@ -45,8 +46,7 @@ public class RaidStateTracker
         int region = lp == null ? -1 : WorldPoint.fromLocalInstance(client, lp).getRegionID();
 
         Widget w = client.getWidget(WIDGET_PARENT_ID, WIDGET_CHILD_ID);
-
-        boolean inLobby = region == REGION_LOBBY;
+        
         RaidRoom currentRoom = RaidRoom.forRegionId(region);
         boolean inRaid = currentRoom != null || (
                 (w != null && !w.isHidden()) || //toa

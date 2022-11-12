@@ -1,6 +1,5 @@
-package com.raidtracker.filereadwriter;
+package com.raidtracker.data;
 
-import com.raidtracker.RaidTrackerItem;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

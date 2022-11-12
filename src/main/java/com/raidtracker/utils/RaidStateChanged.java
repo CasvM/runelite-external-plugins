@@ -1,5 +1,6 @@
 package com.raidtracker.utils;
 
+import com.raidtracker.data.RaidState;
 import lombok.Value;
 
 @Value

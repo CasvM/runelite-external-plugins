@@ -4,7 +4,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
-public class uiUtils
+public class UIUtils
 {
     public String secondsToMinuteString(int seconds) {
         if (seconds < 0) {

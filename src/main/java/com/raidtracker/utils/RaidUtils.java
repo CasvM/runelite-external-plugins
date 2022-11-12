@@ -2,9 +2,10 @@ package com.raidtracker.utils;
 
 
 import com.google.inject.Inject;
-import com.raidtracker.RaidTracker;
+import com.raidtracker.data.RaidTracker;
 import com.raidtracker.RaidTrackerConfig;
 import com.raidtracker.RaidTrackerPlugin;
+import com.raidtracker.data.UniqueDrop;
 import net.runelite.api.Client;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemManager;
@@ -15,7 +16,7 @@ import java.util.ArrayList;
 
 import static net.runelite.client.util.Text.toJagexName;
 
-public class raidUtils
+public class RaidUtils
 {
     @Inject
     private ItemManager itemManager;

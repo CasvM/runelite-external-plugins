@@ -1,4 +1,4 @@
-package com.raidtracker.ui;
+package com.raidtracker.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

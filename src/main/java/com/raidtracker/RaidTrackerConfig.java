@@ -15,6 +15,12 @@ public interface RaidTrackerConfig extends Config
 	)
 	String toasection = "Tombs of Amascot";
 	@ConfigSection(
+			name = "Configuration",
+			description = "General Configuration",
+			position = 99
+	)
+	String configuration = "Configuration";
+	@ConfigSection(
 			name = "Chambers of Xeric",
 			description = "Settings for Chambers of Xeric",
 			position = 1
@@ -164,5 +170,12 @@ public interface RaidTrackerConfig extends Config
 	{
 		return true;
 	}
-
+	
+	@ConfigItem(
+			keyName = "lastusername",
+			name = "Last tracked username",
+			description = "ability to reuse the same folder if you change your username",
+			section = configuration
+	)
+	default String lastusername() {return "";};
 }

@@ -4,9 +4,10 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.testing.fieldbinder.Bind;
 import com.google.inject.testing.fieldbinder.BoundFieldModule;
-import com.raidtracker.filereadwriter.FileReadWriter;
+import com.raidtracker.data.RaidTracker;
+import com.raidtracker.io.FileReadWriter;
 import com.raidtracker.ui.RaidTrackerPanel;
-import com.raidtracker.ui.RaidUniques;
+import com.raidtracker.data.RaidUniques;
 import junit.framework.TestCase;
 import net.runelite.api.Client;
 import net.runelite.client.game.ItemManager;
@@ -18,7 +19,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.concurrent.ExecutionException;
 
 import static org.mockito.Mockito.*;
 
@@ -79,30 +79,7 @@ public class TestRaidTrackerPanel extends TestCase
         ItemManager IM = mock(ItemManager.class);
 
         panel.setItemManager(IM);
-
-        /*ArrayList<RaidTracker> arcanes = panel.filterRTListByName("Arcane Prayer Scroll");
-        ArrayList<RaidTracker> dexes = panel.filterRTListByName("Dexterous Prayer Scroll");
-        ArrayList<RaidTracker> dusts = panel.filterDustReceivers();
-        ArrayList<RaidTracker> kits = panel.filterKitReceivers();
-        ArrayList<RaidTracker> pets = panel.filterPetReceivers();
-        ArrayList<RaidTracker> ownArcanes = panel.filterOwnDrops(arcanes);
-        ArrayList<RaidTracker> ownDexes = panel.filterOwnDrops(dexes);
-        ArrayList<RaidTracker> ownDusts = panel.filterOwnDusts(dusts);
-        ArrayList<RaidTracker> ownKits = panel.filterOwnKits(kits);
-        ArrayList<RaidTracker> ownPets = panel.filterOwnPets(pets);
-
-
-        assertEquals(2, arcanes.size());
-        assertEquals(1, ownArcanes.size());
-        assertEquals(1, dexes.size());
-        assertEquals(0, ownDexes.size());
-        assertEquals(2, dusts.size());
-        assertEquals(1, ownDusts.size());
-        assertEquals(4, kits.size());
-        assertEquals(2, ownKits.size());
-        assertEquals(4, pets.size());
-        assertEquals(2, ownPets.size());*/
-
+    
         assertEquals(4, panel.getDistinctKills(l).size());
 
     }
