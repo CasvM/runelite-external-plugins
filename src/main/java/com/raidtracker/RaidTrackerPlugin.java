@@ -47,6 +47,7 @@ import static net.runelite.client.util.Text.toJagexName;
 
 public class RaidTrackerPlugin extends Plugin
 {
+	public static final String PLUGIN_DIR = "raid-data-tracker";
 	public static final String LEVEL_COMPLETE_MESSAGE = "complete! Duration:";
 	public static final String RAID_COMPLETE_MESSAGE = "Congratulations - your raid is complete!";
 	public static final String DUST_RECIPIENTS = "Dust recipients: ";
@@ -99,7 +100,7 @@ public class RaidTrackerPlugin extends Plugin
 	private NavigationButton navButton;
 
 	@Inject
-	public com.raidtracker.utils.RaidUtils RaidUtils;
+	public RaidUtils RaidUtils;
 	@Inject
 	private FileReadWriter fw;
 	
@@ -149,7 +150,7 @@ public class RaidTrackerPlugin extends Plugin
 		{
 			return;
 		}
-		ioUtils.checkUsernames(configChanged.getOldValue(), configChanged.getNewValue());
+		ioUtils.checkUsernames(configChanged.getNewValue(), client.getLocalPlayer().getName());
 	}
 	
 	@Subscribe

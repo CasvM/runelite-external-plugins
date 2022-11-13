@@ -5,13 +5,18 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
+import com.raidtracker.RaidTrackerConfig;
+import com.raidtracker.RaidTrackerPlugin;
 import com.raidtracker.data.RaidTracker;
 import com.raidtracker.data.OldRaidTracker;
 import com.raidtracker.data.UniqueDrop;
+import com.sun.jna.platform.FileUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.config.RuneScapeProfileType;
+import net.runelite.client.util.Text;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -32,21 +37,19 @@ public class FileReadWriter {
     private static ConfigManager configManager;
     @Getter
     private String username = "Canvasba";
-    private String coxDir;
-    private String tobDir;
-    private String toaDir;
-    
+    public static final String PLUGIN_DIR = "raid-data-tracker";
     @Inject
     private Client client;
+    @Inject
+    private IOUtils ioUtils;
+    
+    @Inject
+    private RaidTrackerConfig config;
     
     public void writeToFile(RaidTracker raidTracker)
     {
-        if (coxDir == null)
-        {
-            log.info("Directory does not exist, creating.");
-            createFolders();
-        }
-        log.info("writer started");
+        CheckOrCreate();
+        log.info("[RAID DATA TRACKER] [STARTING WRITER]");
         ArrayList<RaidTracker> saved = readFromFile(raidTracker.getInRaidType());
         boolean newrt = true;
         int index = 0;
@@ -73,34 +76,17 @@ public class FileReadWriter {
     
     public ArrayList<RaidTracker> readFromFile(String alternateFile, int raidType)
     {
-        String dir;
-        switch (raidType)
-        {
-            case 0 : // chambers;
-                dir = coxDir;
-                break;
-            case 1: // Tob
-                dir = tobDir;
-                break;
-            case 2 :// toa
-                dir = toaDir;
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + raidType);
-        }
-        String fileName;
-        if (alternateFile.length() != 0) {
-            fileName = alternateFile;
-        }
-        else {
-            fileName = dir + "\\raid_tracker_data.log";
-        }
-
         try {
             Gson gson = new GsonBuilder().create();
             JsonParser parser = new JsonParser();
-
-            BufferedReader bufferedreader = new BufferedReader(new FileReader(fileName));
+            String filePath = ioUtils.generatePath(raidType);
+            File f = new File(filePath);
+            if (!f.exists())
+            {
+                f.createNewFile();
+            };
+            
+            BufferedReader bufferedreader = new BufferedReader(new FileReader(filePath));
             String line;
 
             ArrayList<RaidTracker> RTList = new ArrayList<>();
@@ -127,34 +113,18 @@ public class FileReadWriter {
 
     }
 
-    public void createFolders()
+    public void CheckOrCreate()
     {
-        File dir = new File(RUNELITE_DIR, "raid-data-tracker");
-        IGNORE_RESULT(dir.mkdir());
-        dir = new File(dir, username);
-        IGNORE_RESULT(dir.mkdir());
-        File dir_cox = new File(dir, "cox");
-        File dir_tob = new File(dir, "tob");
-        File dir_toa   = new File(dir, "toa");
-        IGNORE_RESULT(dir_cox.mkdir());
-        IGNORE_RESULT(dir_tob.mkdir());
-        IGNORE_RESULT(dir_toa.mkdir());
-        File newCoxFile = new File(dir_cox + "\\raid_tracker_data.log");
-        File newTobFile = new File(dir_tob + "\\raid_tracker_data.log");
-        File newToaFile = new File(dir_toa + "\\raid_tracker_data.log");
-
-        try {
-            IGNORE_RESULT(newCoxFile.createNewFile());
-            IGNORE_RESULT(newTobFile.createNewFile());
-            IGNORE_RESULT(newToaFile.createNewFile());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        this.coxDir = dir_cox.getAbsolutePath();
-        this.tobDir = dir_tob.getAbsolutePath();
-        this.toaDir = dir_toa.getAbsolutePath();
-        
+        String lastusername = config.lastusername();
+        if (!lastusername.equalsIgnoreCase(""))
+        {
+            ioUtils.checkUsernames(lastusername, client.getLocalPlayer().getName());
+        } else
+        {
+            config.setlastusername(client.getLocalPlayer().getName());
+            ioUtils.ensurePath(config.lastusername());
+        };
+    
         if (oldExists())
         {
             try
@@ -166,38 +136,19 @@ public class FileReadWriter {
                 throw new RuntimeException(e);
             }
         }
-    }
+    };
 
     public void updateUsername(final String username) {
         this.username = username;
-        createFolders();
+        CheckOrCreate();
     }
 
     public void updateRTList(ArrayList<RaidTracker> RTList, int type) {
-        String dir;
-        switch (type)
-        {
-            case 0 : // chambers;
-                dir = coxDir;
-                break;
-            case 1: // Tob
-                dir = tobDir;
-                break;
-            case 2 :// toa
-                dir = toaDir;
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + type);
-        }
-    
         try {
             Gson gson = new GsonBuilder().create();
 
             JsonParser parser = new JsonParser();
-            String fileName = dir + "\\raid_tracker_data.log";
-
-
-            FileWriter fw = new FileWriter(fileName, false); //the true will append the new data
+            FileWriter fw = new FileWriter(ioUtils.generatePath(type), false); //the true will append the new data
             for (RaidTracker RT : RTList)
             {
                 gson.toJson(parser.parse(getJSONString(RT, gson, parser)), fw);
@@ -212,32 +163,16 @@ public class FileReadWriter {
 
 
     public boolean delete(int type) {
-        String dir;
-        switch (type)
-        {
-            case 0 : // chambers;
-                dir = coxDir;
-                break;
-            case 1: // Tob
-                dir = tobDir;
-                break;
-            case 2 :// toa
-                dir = toaDir;
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + type);
-        }
-    
-        File newFile = new File(dir + "\\raid_tracker_data.log");
-
+        String filePath = ioUtils.generatePath(type);
+        File newFile = new File(filePath);
         boolean isDeleted = newFile.delete();
-
-        try {
+        try
+        {
             IGNORE_RESULT(newFile.createNewFile());
-        } catch (IOException e) {
+        } catch (IOException e)
+        {
             e.printStackTrace();
         }
-
         return isDeleted;
     }
 
@@ -274,7 +209,8 @@ public class FileReadWriter {
             {
                 
                 String filePath = basePath + File.separator + dir + File.separator + "raid_tracker_data.log";
-                if (Files.exists(Paths.get(filePath)))
+                Path path = Paths.get(filePath);
+                if (Files.exists(path))
                 {
                     log.info(dir.toUpperCase() + " Exists, Reading File");
                     int start = (int) new Date().getTime();
@@ -422,7 +358,7 @@ public class FileReadWriter {
                     {
                         updateRTList(newList, index[0]);
                     }
-                    Files.move(Paths.get(filePath), Paths.get(filePath + ".bak"));
+                    Files.move(path, Paths.get(filePath + ".bak"));
                 }
             }
         }

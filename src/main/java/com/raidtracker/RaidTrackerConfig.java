@@ -178,4 +178,10 @@ public interface RaidTrackerConfig extends Config
 			section = configuration
 	)
 	default String lastusername() {return "";};
+	@ConfigItem(
+			keyName = "lastusername",
+			name = "",
+			description = ""
+	)
+	void setlastusername(String lastusername);
 }

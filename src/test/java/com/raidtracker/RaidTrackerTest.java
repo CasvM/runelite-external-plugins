@@ -10,10 +10,7 @@ import com.raidtracker.io.FileReadWriter;
 import com.raidtracker.data.RaidState;
 import com.raidtracker.utils.RaidStateTracker;
 import junit.framework.TestCase;
-import net.runelite.api.ChatMessageType;
-import net.runelite.api.Client;
-import net.runelite.api.Player;
-import net.runelite.api.Varbits;
+import net.runelite.api.*;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.client.RuneLite;
 import net.runelite.client.config.ConfigClient;
@@ -32,6 +29,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ScheduledExecutorService;
@@ -63,12 +61,7 @@ public class RaidTrackerTest extends TestCase
 	@Bind
 	@Named("sessionfile")
 	File sessionfile = RuneLite.DEFAULT_SESSION_FILE;
-
-	@Bind
-	@Named("config")
-	File config = RuneLite.DEFAULT_CONFIG_FILE;
-
-
+	
 	@Mock
 	@Bind
 	ConfigClient configClient;
@@ -83,7 +76,7 @@ public class RaidTrackerTest extends TestCase
 
 	@Mock
 	@Bind
-	private RaidTrackerConfig raidTrackerConfig;
+	private RaidTrackerConfig config;
 
 	@Inject
 	RaidTrackerPlugin RaidTrackerPlugin;
@@ -109,10 +102,15 @@ public class RaidTrackerTest extends TestCase
 		when(RaidStateTracker.isInRaid()).thenReturn(true);
 		Player player = mock(Player.class);
 		when(client.getLocalPlayer()).thenReturn(player);
-		when(player.getName()).thenReturn("Canvasba");
 		//noinspection deprecation
 		when(client.getUsername()).thenReturn("Canvasba");
 		when(RaidStateTracker.getCurrentState()).thenReturn(new RaidState(false, 0));
+		
+		when(client.getLocalPlayer()).thenReturn(mock(Player.class));
+		when(client.getLocalPlayer().getName()).thenReturn("Canvasba");
+		when(client.getUsername()).thenReturn("Canvasba");
+		when(client.getWorldType()).thenReturn(EnumSet.allOf(WorldType.class));
+		when(config.lastusername()).thenReturn("Canvasba");
 		fw.updateUsername("Canvasba");
 	}
 	
