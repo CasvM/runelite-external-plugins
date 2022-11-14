@@ -213,7 +213,6 @@ public class FileReadWriter {
                 {
                     log.info(dir.toUpperCase() + " Exists, Reading File");
                     int start = (int) new Date().getTime();
-                    Gson gson = new Gson();
                     String line;
                     BufferedReader bufferedreader = new BufferedReader(new FileReader(filePath));
                     ArrayList<OldRaidTracker> oldList = new ArrayList<>();
