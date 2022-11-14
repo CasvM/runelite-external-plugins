@@ -1290,11 +1290,11 @@ public class RaidTrackerPanel extends PluginPanel {
                                 .collect(Collectors.toCollection(ArrayList::new));
                         break;
                     case 2 :
-                        tempRTList = toaRTList.stream().filter(RT -> ((RT.getInvocation() > 150) && (RT.getInvocation() < 300)))
+                        tempRTList = toaRTList.stream().filter(RT -> ((RT.getInvocation() >= 150) && (RT.getInvocation() < 300)))
                                 .collect(Collectors.toCollection(ArrayList::new));
                         break;
                     case 3 :
-                        tempRTList = toaRTList.stream().filter(RT -> (RT.getInvocation() > 300))
+                        tempRTList = toaRTList.stream().filter(RT -> (RT.getInvocation() >= 300))
                                 .collect(Collectors.toCollection(ArrayList::new));
                         break;
                     default:
