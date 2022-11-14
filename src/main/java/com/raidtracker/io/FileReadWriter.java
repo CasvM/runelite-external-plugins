@@ -1,7 +1,6 @@
 package com.raidtracker.io;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.google.inject.Inject;
@@ -44,6 +43,8 @@ public class FileReadWriter {
     private IOUtils ioUtils;
     
     @Inject
+    private Gson gson;
+    @Inject
     private RaidTrackerConfig config;
     
     public void writeToFile(RaidTracker raidTracker)
@@ -77,7 +78,6 @@ public class FileReadWriter {
     public ArrayList<RaidTracker> readFromFile(String alternateFile, int raidType)
     {
         try {
-            Gson gson = new GsonBuilder().create();
             JsonParser parser = new JsonParser();
             String filePath = ioUtils.generatePath(raidType);
             File f = new File(filePath);
@@ -145,7 +145,6 @@ public class FileReadWriter {
 
     public void updateRTList(ArrayList<RaidTracker> RTList, int type) {
         try {
-            Gson gson = new GsonBuilder().create();
 
             JsonParser parser = new JsonParser();
             FileWriter fw = new FileWriter(ioUtils.generatePath(type), false); //the true will append the new data
@@ -214,7 +213,8 @@ public class FileReadWriter {
                 {
                     log.info(dir.toUpperCase() + " Exists, Reading File");
                     int start = (int) new Date().getTime();
-                    Gson gson = new Gson();String line;
+                    Gson gson = new Gson();
+                    String line;
                     BufferedReader bufferedreader = new BufferedReader(new FileReader(filePath));
                     ArrayList<OldRaidTracker> oldList = new ArrayList<>();
                     ArrayList<RaidTracker> newList = new ArrayList<>();
