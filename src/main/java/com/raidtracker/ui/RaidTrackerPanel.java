@@ -327,7 +327,7 @@ public class RaidTrackerPanel extends PluginPanel {
                     textPanel(String.format("%s GP per raid", format((reggp + purplegp) / totalRaids)), SwingConstants.CENTER, SwingConstants.CENTER)
             );
             infoWrapper.add(
-                    textPanel(String.format("~%s GP per hour", format((reggp + purplegp) / (seconds / 3600))), SwingConstants.CENTER, SwingConstants.CENTER)
+                    textPanel(String.format("~%s GP per hour", format((reggp + purplegp) / Math.max(seconds / 3600, 1))), SwingConstants.CENTER, SwingConstants.CENTER)
             );
             wrapper.add(infoWrapper);
         };
