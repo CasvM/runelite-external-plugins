@@ -32,8 +32,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Array;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -58,7 +60,10 @@ public class RaidTrackerPanel extends PluginPanel {
     private final HashMap<String, RaidTracker> UUIDMap = new LinkedHashMap<>();
     private final HashMap<String, RaidTracker> TobUUIDMap = new LinkedHashMap<>();
     private final HashMap<String, RaidTracker> ToaUUIDMap = new LinkedHashMap<>();
-
+    private Map<Integer, RaidTrackerItem> uniqueIDs = new HashMap<>();
+    private Map<Integer, Integer> priceMap = new HashMap<>();
+    
+    
     @Setter
     private boolean loaded = false;
     private final JPanel panel = new JPanel();
@@ -190,39 +195,54 @@ public class RaidTrackerPanel extends PluginPanel {
         panel.removeAll();
         panel.setBorder(new EmptyBorder(5, 5, 5, 5));
         JPanel title = getHeader();
-
-        panel.add(title);
-        panel.add(getFilterPanel());
-        panel.add(Box.createRigidArea(new Dimension(0, 5)));
-        panel.add(getKillsLoggedPanel());
-        panel.add(Box.createRigidArea(new Dimension(0, 5)));
-        switch (index) {
-            case 0 :
-                panel.add(getPointsPanel());
-                panel.add(Box.createRigidArea(new Dimension(0, 5)));
-                break;
-            case 1 :
-                panel.add(getMvpPanel());
-                panel.add(Box.createRigidArea(new Dimension(0, 5)));
-                break;
-            case 2 :
-                break;
-            default :
-                log.info("Error with user selection");
-                break;
-        }
-        panel.add(getUniquesPanel());
-        panel.add(Box.createRigidArea(new Dimension(0, 5)));
-        panel.add(getSplitsEarnedPanel());
-        panel.add(Box.createRigidArea(new Dimension(0, 5)));
-        panel.add(getTimeSplitsPanel());
-        panel.add(Box.createRigidArea(new Dimension(0, 5)));
-        panel.add(getRegularDropsPanel());
-        panel.add(Box.createRigidArea(new Dimension(0, 5)));
-        panel.add(getChangePurples());
-        panel.revalidate();
-        panel.repaint();
-    }
+        
+        try
+        {
+            uniqueIDs = getDistinctRegularDrops().get();
+        } catch (InterruptedException | ExecutionException e)
+        {
+            uniqueIDs = new HashMap<>();
+        } finally
+        {
+            for (RaidTrackerItem item : uniqueIDs.values())
+            {
+                priceMap.put(item.getId(), item.getPrice());
+            }
+            panel.add(title);
+            panel.add(getFilterPanel());
+            panel.add(Box.createRigidArea(new Dimension(0, 5)));
+            panel.add(getKillsLoggedPanel());
+            panel.add(Box.createRigidArea(new Dimension(0, 5)));
+            switch (index) {
+                case 0 :
+                    panel.add(getPointsPanel());
+                    panel.add(Box.createRigidArea(new Dimension(0, 5)));
+                    break;
+                case 1 :
+                    panel.add(getMvpPanel());
+                    panel.add(Box.createRigidArea(new Dimension(0, 5)));
+                    break;
+                case 2 :
+                    break;
+                default :
+                    log.info("Error with user selection");
+                    break;
+            }
+            panel.add(getUniquesPanel());
+            panel.add(Box.createRigidArea(new Dimension(0, 5)));
+            panel.add(getSplitsEarnedPanel());
+            panel.add(Box.createRigidArea(new Dimension(0, 5)));
+            panel.add(getTimeSplitsPanel());
+            panel.add(Box.createRigidArea(new Dimension(0, 5)));
+            panel.add(getPerRaidPanel());
+            panel.add(Box.createRigidArea(new Dimension(0, 5)));
+            panel.add(getRegularDropsPanel());
+            panel.add(Box.createRigidArea(new Dimension(0, 5)));
+            panel.add(getChangePurples());
+            panel.revalidate();
+            panel.repaint();
+        };
+    };
 
     public int getRaidIndex() {
         return this.RaidIndex;
@@ -253,7 +273,66 @@ public class RaidTrackerPanel extends PluginPanel {
             return label;
         }
     }
-
+    
+    private JPanel getPerRaidPanel()
+    {
+        int totalRaids = 0;
+        int purplegp = 0;
+        int reggp = 0;
+        int seconds = 0;
+        
+        final JPanel wrapper = new JPanel();
+    
+        if (loaded)
+        {
+            wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
+            wrapper.setBorder(new EmptyBorder(3, 0, 0, 0));
+            wrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR.darker());
+    
+            final JPanel title = new JPanel();
+    
+            title.setBorder(new EmptyBorder(3, 20, 3, 10));
+            title.setLayout(new GridLayout(0, 1));
+            title.setBackground(ColorScheme.DARKER_GRAY_COLOR.darker());
+    
+            JLabel textLabel = textPanel("Earnings Info", SwingConstants.CENTER, SwingConstants.CENTER);
+            
+            title.add(textLabel);
+            wrapper.add(title);
+            
+            if (uniqueIDs.values().size() > 0)
+            {
+                for (RaidTracker tracker : getFilteredRTList()) {
+                    totalRaids ++;
+                    seconds += tracker.getRaidTime();
+                    List<RaidTrackerItem> lootlist = tracker.getLootList().stream().filter(rti -> rti.getId() !=12073).collect(Collectors.toList());
+                    List<UniqueDrop> uniqueList = tracker.getUniques().stream().filter(unique -> !unique.isFfa()).collect(Collectors.toList());
+                    for (RaidTrackerItem item : lootlist)
+                    {
+                        reggp += (item.getQuantity() * priceMap.get(item.getId()));
+                    }
+                    for (UniqueDrop drop : uniqueList)
+                    {
+                          purplegp += drop.getValue() / drop.getSCount();
+                    };
+                }
+            };
+    
+            final JPanel infoWrapper = new JPanel();
+    
+            infoWrapper.setBorder(new EmptyBorder(5, 0, 5, 10));
+            infoWrapper.setLayout(new GridLayout(0, 1, 5 ,5));
+            infoWrapper.setBackground(ColorScheme.DARK_GRAY_COLOR.darker());
+            infoWrapper.add(
+                    textPanel(String.format("%s GP per raid", format((reggp + purplegp) / totalRaids)), SwingConstants.CENTER, SwingConstants.CENTER)
+            );
+            infoWrapper.add(
+                    textPanel(String.format("~%s GP per hour", format((reggp + purplegp) / (seconds / 3600))), SwingConstants.CENTER, SwingConstants.CENTER)
+            );
+            wrapper.add(infoWrapper);
+        };
+        return wrapper;
+    };
     private JPanel getUniquesPanel() {
         final JPanel wrapper = new JPanel();
         wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
@@ -428,6 +507,7 @@ public class RaidTrackerPanel extends PluginPanel {
         return points;
     }
 
+    
     private JPanel getSplitsEarnedPanel() {
         JPanel wrapper = new JPanel();
         wrapper.setLayout(new GridLayout(0,3));
@@ -490,90 +570,81 @@ public class RaidTrackerPanel extends PluginPanel {
         wrapper.setLayout(new BoxLayout(wrapper, BoxLayout.Y_AXIS));
 
         if (loaded) {
-            Map<Integer, RaidTrackerItem> uniqueIDs = new HashMap<>();
-            try {
-                uniqueIDs = getDistinctRegularDrops().get();
-            } catch (InterruptedException | ExecutionException e) {
-                uniqueIDs = new HashMap<>();
-            } finally {
-                Map<Integer, Integer> priceMap = new HashMap<>();
-
-                for (RaidTrackerItem item : uniqueIDs.values()) {
-                    priceMap.put(item.getId(), item.getPrice());
-                }
-
-                if (uniqueIDs.values().size() > 0) {
-                    for (RaidTracker RT : getFilteredRTList()) {
-                        for (RaidTrackerItem item : RT.getLootList()) {
-                            RaidTrackerItem RTI = uniqueIDs.get(item.getId());
-
-                            //making sure to not change the clues here as it's been handled in getDistinctRegularDrops
-                            if (RTI != null && RTI.getId() != 12073) {
-                                int qty = RTI.getQuantity();
-                                RTI.setQuantity(qty + item.getQuantity());
-
-                                RTI.setPrice(priceMap.get(item.getId()) * RTI.getQuantity());
-
-                                uniqueIDs.replace(item.getId(), RTI);
-                            }
+            Map<Integer, Integer> priceMap = new HashMap<>();
+    
+            for (RaidTrackerItem item : uniqueIDs.values()) {
+                priceMap.put(item.getId(), item.getPrice());
+            }
+    
+            if (uniqueIDs.values().size() > 0) {
+                for (RaidTracker RT : getFilteredRTList()) {
+                    for (RaidTrackerItem item : RT.getLootList()) {
+                        RaidTrackerItem RTI = uniqueIDs.get(item.getId());
+                
+                        //making sure to not change the clues here as it's been handled in getDistinctRegularDrops
+                        if (RTI != null && RTI.getId() != 12073) {
+                            int qty = RTI.getQuantity();
+                            RTI.setQuantity(qty + item.getQuantity());
+                            RTI.setPrice(priceMap.get(item.getId()) * RTI.getQuantity());
+                            uniqueIDs.replace(item.getId(), RTI);
                         }
                     }
-
-                    ArrayList<RaidTrackerItem> regularDropsList = new ArrayList<>(uniqueIDs.values());
-
-                    regularDropsList.sort((o2, o1) -> Integer.compare(o1.getPrice(), o2.getPrice()));
-
-
-                    int regularDropsSum = regularDropsList.stream().mapToInt(RaidTrackerItem::getPrice).sum();
-
-                    final JPanel drops = new JPanel();
-                    drops.setLayout(new GridLayout(0, 5));
-
-                    for (RaidTrackerItem drop : regularDropsList) {
-                        AsyncBufferedImage image = itemManager.getImage(drop.getId(), drop.getQuantity(), drop.getQuantity() > 1);
-
-                        JPanel iconWrapper = new JPanel();
-                        iconWrapper.setPreferredSize(new Dimension(40, 40));
-                        iconWrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-
-                        JLabel icon = new JLabel();
-                        image.addTo(icon);
-                        icon.setBorder(new EmptyBorder(0, 5, 0, 0));
-
-                        image.onLoaded(() ->
-                        {
-                            image.addTo(icon);
-                            icon.revalidate();
-                            icon.repaint();
-                        });
-
-                        iconWrapper.add(icon, BorderLayout.CENTER);
-                        iconWrapper.setBorder(new MatteBorder(1, 0, 0, 1, ColorScheme.DARK_GRAY_COLOR));
-                        iconWrapper.setToolTipText(getRegularToolTip(drop));
-
-                        drops.add(iconWrapper);
-                    }
-
-                    final JPanel title = new JPanel();
-                    title.setLayout(new GridLayout(0, 2));
-                    title.setBorder(new EmptyBorder(3, 20, 3, 10));
-                    title.setBackground(ColorScheme.DARKER_GRAY_COLOR.darker());
-
-                    JLabel textLabel = textPanel("Regular Drops", SwingConstants.CENTER, SwingConstants.CENTER);
-                    textLabel.setHorizontalAlignment(SwingConstants.LEFT);
-
-                    JLabel valueLabel = textPanel(format(regularDropsSum) + " gp", SwingConstants.CENTER, SwingConstants.CENTER);
-                    valueLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-                    valueLabel.setForeground(Color.LIGHT_GRAY.darker());
-                    valueLabel.setToolTipText(NumberFormat.getInstance().format(regularDropsSum));
-
-                    title.add(textLabel);
-                    title.add(valueLabel);
-
-
-                    wrapper.add(title);
-                    wrapper.add(drops);
                 }
+        
+                ArrayList<RaidTrackerItem> regularDropsList = new ArrayList<>(uniqueIDs.values());
+        
+                regularDropsList.sort((o2, o1) -> Integer.compare(o1.getPrice(), o2.getPrice()));
+        
+        
+                int regularDropsSum = regularDropsList.stream().mapToInt(RaidTrackerItem::getPrice).sum();
+        
+                final JPanel drops = new JPanel();
+                drops.setLayout(new GridLayout(0, 5));
+        
+                for (RaidTrackerItem drop : regularDropsList) {
+                    AsyncBufferedImage image = itemManager.getImage(drop.getId(), drop.getQuantity(), drop.getQuantity() > 1);
+            
+                    JPanel iconWrapper = new JPanel();
+                    iconWrapper.setPreferredSize(new Dimension(40, 40));
+                    iconWrapper.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+            
+                    JLabel icon = new JLabel();
+                    image.addTo(icon);
+                    icon.setBorder(new EmptyBorder(0, 5, 0, 0));
+            
+                    image.onLoaded(() ->
+                    {
+                        image.addTo(icon);
+                        icon.revalidate();
+                        icon.repaint();
+                    });
+            
+                    iconWrapper.add(icon, BorderLayout.CENTER);
+                    iconWrapper.setBorder(new MatteBorder(1, 0, 0, 1, ColorScheme.DARK_GRAY_COLOR));
+                    iconWrapper.setToolTipText(getRegularToolTip(drop));
+            
+                    drops.add(iconWrapper);
+                }
+        
+                final JPanel title = new JPanel();
+                title.setLayout(new GridLayout(0, 2));
+                title.setBorder(new EmptyBorder(3, 20, 3, 10));
+                title.setBackground(ColorScheme.DARKER_GRAY_COLOR.darker());
+        
+                JLabel textLabel = textPanel("Regular Drops", SwingConstants.CENTER, SwingConstants.LEFT);
+                textLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        
+                JLabel valueLabel = textPanel(format(regularDropsSum) + " gp", SwingConstants.CENTER, SwingConstants.CENTER);
+                valueLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+                valueLabel.setForeground(Color.LIGHT_GRAY);
+                valueLabel.setToolTipText(NumberFormat.getInstance().format(regularDropsSum));
+        
+                title.add(textLabel);
+                title.add(valueLabel);
+        
+        
+                wrapper.add(title);
+                wrapper.add(drops);
             }
         }
 
@@ -857,9 +928,7 @@ public class RaidTrackerPanel extends PluginPanel {
         }
 
         JLabel textLabel = textPanel("Total MVP's:", SwingConstants.CENTER, SwingConstants.LEFT);
-
         JLabel valueLabel = textPanel(Integer.toString(mvpAmount), SwingConstants.CENTER, SwingConstants.RIGHT);
-
         wrapper.add(textLabel);
         wrapper.add(valueLabel);
         return wrapper;
@@ -1017,18 +1086,17 @@ public class RaidTrackerPanel extends PluginPanel {
     public void loadRTList() {
         //TODO: support for a custom file so that it can be added to onedrive for example.
         RTList = fw.readFromFile(0);
+        
         for (RaidTracker RT : RTList) {
             UUIDMap.put(RT.getUniqueID(), RT);
         }
 
         tobRTList = fw.readFromFile(1);
-
         for (RaidTracker RT : tobRTList) {
             TobUUIDMap.put(RT.getUniqueID(), RT);
         }
 
         toaRTList = fw.readFromFile(2);
-
         for (RaidTracker RT : toaRTList) {
             ToaUUIDMap.put(RT.getUniqueID(), RT);
         }
