@@ -313,7 +313,7 @@ public class RaidTrackerPanel extends PluginPanel {
                     }
                     for (UniqueDrop drop : uniqueList)
                     {
-                          purplegp += drop.getValue() / drop.getSCount();
+                          purplegp += drop.getValue() / Math.max(drop.getSCount(), 1);
                     };
                 }
             };
@@ -324,7 +324,7 @@ public class RaidTrackerPanel extends PluginPanel {
             infoWrapper.setLayout(new GridLayout(0, 1, 5 ,5));
             infoWrapper.setBackground(ColorScheme.DARK_GRAY_COLOR.darker());
             infoWrapper.add(
-                    textPanel(String.format("%s GP per raid", format((reggp + purplegp) / totalRaids)), SwingConstants.CENTER, SwingConstants.CENTER)
+                    textPanel(String.format("%s GP per raid", format((reggp + purplegp) / Math.max(totalRaids, 1))), SwingConstants.CENTER, SwingConstants.CENTER)
             );
             infoWrapper.add(
                     textPanel(String.format("~%s GP per hour", format((reggp + purplegp) / Math.max(seconds / 3600, 1))), SwingConstants.CENTER, SwingConstants.CENTER)
