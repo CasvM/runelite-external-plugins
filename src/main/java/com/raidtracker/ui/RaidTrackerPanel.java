@@ -147,6 +147,7 @@ public class RaidTrackerPanel extends PluginPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         add(panel, BorderLayout.NORTH);
+        uniqueIDs = new HashMap<>();
         reloadPanel(0);
     }
 
@@ -186,62 +187,46 @@ public class RaidTrackerPanel extends PluginPanel {
 
         panel.add(title);
 
-
         return title;
     }
 
     private void reloadPanel(int index) {
-
         panel.removeAll();
         panel.setBorder(new EmptyBorder(5, 5, 5, 5));
         JPanel title = getHeader();
-        
-        try
-        {
-            uniqueIDs = getDistinctRegularDrops().get();
-        } catch (InterruptedException | ExecutionException e)
-        {
-            uniqueIDs = new HashMap<>();
-        } finally
-        {
-            for (RaidTrackerItem item : uniqueIDs.values())
-            {
-                priceMap.put(item.getId(), item.getPrice());
-            }
-            panel.add(title);
-            panel.add(getFilterPanel());
-            panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            panel.add(getKillsLoggedPanel());
-            panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            switch (index) {
-                case 0 :
-                    panel.add(getPointsPanel());
-                    panel.add(Box.createRigidArea(new Dimension(0, 5)));
-                    break;
-                case 1 :
-                    panel.add(getMvpPanel());
-                    panel.add(Box.createRigidArea(new Dimension(0, 5)));
-                    break;
-                case 2 :
-                    break;
-                default :
-                    log.info("Error with user selection");
-                    break;
-            }
-            panel.add(getUniquesPanel());
-            panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            panel.add(getSplitsEarnedPanel());
-            panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            panel.add(getTimeSplitsPanel());
-            panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            panel.add(getPerRaidPanel());
-            panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            panel.add(getRegularDropsPanel());
-            panel.add(Box.createRigidArea(new Dimension(0, 5)));
-            panel.add(getChangePurples());
-            panel.revalidate();
-            panel.repaint();
-        };
+        panel.add(title);
+        panel.add(getFilterPanel());
+        panel.add(Box.createRigidArea(new Dimension(0, 5)));
+        panel.add(getKillsLoggedPanel());
+        panel.add(Box.createRigidArea(new Dimension(0, 5)));
+        switch (index) {
+            case 0 :
+                panel.add(getPointsPanel());
+                panel.add(Box.createRigidArea(new Dimension(0, 5)));
+                break;
+            case 1 :
+                panel.add(getMvpPanel());
+                panel.add(Box.createRigidArea(new Dimension(0, 5)));
+                break;
+            case 2 :
+                break;
+            default :
+                log.info("Error with user selection");
+                break;
+        }
+        panel.add(getUniquesPanel());
+        panel.add(Box.createRigidArea(new Dimension(0, 5)));
+        panel.add(getSplitsEarnedPanel());
+        panel.add(Box.createRigidArea(new Dimension(0, 5)));
+        panel.add(getTimeSplitsPanel());
+        panel.add(Box.createRigidArea(new Dimension(0, 5)));
+        panel.add(getPerRaidPanel());
+        panel.add(Box.createRigidArea(new Dimension(0, 5)));
+        panel.add(getRegularDropsPanel());
+        panel.add(Box.createRigidArea(new Dimension(0, 5)));
+        panel.add(getChangePurples());
+        panel.revalidate();
+        panel.repaint();
     };
 
     public int getRaidIndex() {
@@ -299,7 +284,13 @@ public class RaidTrackerPanel extends PluginPanel {
             
             title.add(textLabel);
             wrapper.add(title);
-            
+
+
+            if (uniqueIDs.isEmpty())
+            {
+                uniqueIDs = getUniqueIds();
+            };
+
             if (uniqueIDs.values().size() > 0)
             {
                 for (RaidTracker tracker : getFilteredRTList()) {
@@ -571,8 +562,13 @@ public class RaidTrackerPanel extends PluginPanel {
 
         if (loaded) {
             Map<Integer, Integer> priceMap = new HashMap<>();
-    
-            for (RaidTrackerItem item : uniqueIDs.values()) {
+
+            if (uniqueIDs.isEmpty())
+            {
+                uniqueIDs = getUniqueIds();
+            };
+            for (RaidTrackerItem item : uniqueIDs.values())
+            {
                 priceMap.put(item.getId(), item.getPrice());
             }
     
@@ -1243,7 +1239,6 @@ public class RaidTrackerPanel extends PluginPanel {
         CompletableFuture<Map<Integer, RaidTrackerItem>> future = new CompletableFuture<>();
 
         clientThread.invokeLater(() -> {
-
             if (loaded) {
                 HashSet<Integer> uniqueIDs = new HashSet<>();
 
@@ -1506,6 +1501,22 @@ public class RaidTrackerPanel extends PluginPanel {
         }
 
         return new ArrayList<>(tempUUIDMap.values());
+    }
+
+    private  Map<Integer, RaidTrackerItem> getUniqueIds()
+    {
+        try
+        {
+            uniqueIDs = getDistinctRegularDrops().get();
+        } catch (InterruptedException | ExecutionException e)
+        {
+            uniqueIDs = new HashMap<>();
+        } finally {
+            for (RaidTrackerItem item : uniqueIDs.values()) {
+                priceMap.put(item.getId(), item.getPrice());
+            }
+        };
+        return uniqueIDs;
     }
 
     private void clearData()
