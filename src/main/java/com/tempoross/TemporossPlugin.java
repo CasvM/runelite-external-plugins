@@ -340,8 +340,8 @@ public class TemporossPlugin extends Plugin
 		if (config.fishIndicator())
 		{
 			addFishInfoBox(
-				(uncookedFish + crystalFish) + "/" + cookedFish,
-				"Uncooked Fish: " + (uncookedFish + crystalFish) + "</br>Cooked Fish: " + cookedFish
+				(uncookedFish + crystalFish) + "/" + cookedFish + "/" + (uncookedFish + crystalFish + cookedFish),
+				"Uncooked Fish: " + (uncookedFish + crystalFish) + "</br>Cooked Fish: " + cookedFish + "</br>Total: " + (uncookedFish + crystalFish + cookedFish)
 			);
 		}
 
@@ -480,7 +480,7 @@ public class TemporossPlugin extends Plugin
 
 		if (config.fishIndicator())
 		{
-			addFishInfoBox("0/0", "Uncooked Fish: " + 0 + "</br>" + "Cooked Fish: " + 0);
+			addFishInfoBox("0/0/0", "Uncooked Fish: " + 0 + "</br>" + "Cooked Fish: " + 0 + "</br>" + "Total: " + 0);
 		}
 
 		if (config.phaseIndicator())
