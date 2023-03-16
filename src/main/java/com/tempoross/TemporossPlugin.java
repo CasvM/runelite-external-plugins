@@ -1,27 +1,16 @@
 package com.tempoross;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.gson.Gson;
 import com.google.inject.Provides;
 import lombok.Getter;
-import net.runelite.api.ChatMessageType;
-import net.runelite.api.Client;
-import net.runelite.api.GameObject;
-import net.runelite.api.InventoryID;
-import net.runelite.api.ItemContainer;
-import net.runelite.api.ItemID;
-import net.runelite.api.NPC;
-import net.runelite.api.NpcID;
-import net.runelite.api.NullObjectID;
-import net.runelite.api.ObjectID;
+import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.GameObjectDespawned;
-import net.runelite.api.events.GameObjectSpawned;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.ItemContainerChanged;
-import net.runelite.api.events.NpcDespawned;
-import net.runelite.api.events.NpcSpawned;
-import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.events.*;
+import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetID;
+import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
@@ -75,6 +64,9 @@ public class TemporossPlugin extends Plugin
 
 	@Inject
 	private Client client;
+
+	@Inject
+	private ClientThread clientThread;
 
 	@Inject
 	private OverlayManager overlayManager;
@@ -204,6 +196,17 @@ public class TemporossPlugin extends Plugin
 	{
 		gameObjects.remove(gameObjectDespawned.getGameObject());
 		totemMap.remove(gameObjectDespawned.getGameObject());
+	}
+
+	@Subscribe
+	public void onWidgetLoaded(WidgetLoaded widgetLoaded) {
+		this.clientThread.invokeLater(() -> {
+			if (widgetLoaded.getGroupId() == WidgetID.TEMPOROSS_GROUP_ID) {
+				Widget widget = client.getWidget(WidgetID.TEMPOROSS_GROUP_ID, 0).getParent();
+				System.out.println(widget.getName() + " " + widget.getText());
+				client.getWidget(WidgetInfo.TEMPOROSS_STATUS_INDICATOR)
+			}
+		});
 	}
 
 	@Subscribe
@@ -337,21 +340,20 @@ public class TemporossPlugin extends Plugin
 		int cookedFish = inventory.count(ItemID.HARPOONFISH);
 		int crystalFish = inventory.count(ItemID.CRYSTALLISED_HARPOONFISH);
 
+		if (config.damageIndicator())
+		{
+			int damage = uncookedFish * DAMAGE_PER_UNCOOKED
+					+ cookedFish * DAMAGE_PER_COOKED
+					+ crystalFish * DAMAGE_PER_CRYSTAL;
+
+			addDamageInfoBox(damage);
+		}
 		if (config.fishIndicator())
 		{
 			addFishInfoBox(
 				(uncookedFish + crystalFish) + "/" + cookedFish + "/" + (uncookedFish + crystalFish + cookedFish),
 				"Uncooked Fish: " + (uncookedFish + crystalFish) + "</br>Cooked Fish: " + cookedFish + "</br>Total: " + (uncookedFish + crystalFish + cookedFish)
 			);
-		}
-
-		if (config.damageIndicator())
-		{
-			int damage = uncookedFish * DAMAGE_PER_UNCOOKED
-				+ cookedFish * DAMAGE_PER_COOKED
-				+ crystalFish * DAMAGE_PER_CRYSTAL;
-
-			addDamageInfoBox(damage);
 		}
 	}
 
@@ -473,6 +475,11 @@ public class TemporossPlugin extends Plugin
 
 	public void setup()
 	{
+		if (config.phaseIndicator())
+		{
+			addPhaseInfoBox(phase);
+		}
+
 		if (config.damageIndicator())
 		{
 			addDamageInfoBox(0);
@@ -480,12 +487,7 @@ public class TemporossPlugin extends Plugin
 
 		if (config.fishIndicator())
 		{
-			addFishInfoBox("0/0/0", "Uncooked Fish: " + 0 + "</br>" + "Cooked Fish: " + 0 + "</br>" + "Total: " + 0);
-		}
-
-		if (config.phaseIndicator())
-		{
-			addPhaseInfoBox(phase);
+			addFishInfoBox("00/00/00", "Uncooked Fish: " + 0 + "</br>" + "Cooked Fish: " + 0 + "</br>" + "Total: " + 0);
 		}
 	}
 }
