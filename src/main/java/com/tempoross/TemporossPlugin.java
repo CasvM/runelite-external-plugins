@@ -1,16 +1,11 @@
 package com.tempoross;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.gson.Gson;
 import com.google.inject.Provides;
 import lombok.Getter;
 import net.runelite.api.*;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.*;
-import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetID;
-import net.runelite.api.widgets.WidgetInfo;
-import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
@@ -69,9 +64,6 @@ public class TemporossPlugin extends Plugin
 
 	@Inject
 	private Client client;
-
-	@Inject
-	private ClientThread clientThread;
 
 	@Inject
 	private OverlayManager overlayManager;
@@ -446,7 +438,6 @@ public class TemporossPlugin extends Plugin
 		infoBoxManager.removeInfoBox(totalFishInfoBox);
 		totalFishInfoBox = null;
 	}
-
 
 	public void addDamageInfoBox(int damage)
 	{
