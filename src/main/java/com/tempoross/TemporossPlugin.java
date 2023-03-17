@@ -53,6 +53,8 @@ public class TemporossPlugin extends Plugin
 	private static final int REWARD_POOL_IMAGE_ID = ItemID.TOME_OF_WATER;
 	private static final int DAMAGE_IMAGE_ID = ItemID.DRAGON_HARPOON;
 	private static final int FISH_IMAGE_ID = ItemID.HARPOONFISH;
+
+	private static final int NET_IMAGE_ID = ItemID.TINY_NET;
 	private static final BufferedImage PHASE_IMAGE = ImageUtil.loadImageResource(TemporossPlugin.class, "phases.png");
 
 	private static final int FIRE_ID = 37582;
@@ -61,6 +63,9 @@ public class TemporossPlugin extends Plugin
 	private static final int FIRE_SPAWN_MILLIS = 9600;
 	private static final int FIRE_SPREADING_SPAWN_MILLIS = 1200;
 	private static final int WAVE_IMPACT_MILLIS = 7800;
+	public static final int TEMPOROSS_HUD_UPDATE = 4075;
+	public static final int STORM_INTENSITY = 350;
+	public static final int MAX_STORM_INTENSITY = 350;
 
 	@Inject
 	private Client client;
@@ -111,6 +116,7 @@ public class TemporossPlugin extends Plugin
 
 	private TemporossInfoBox rewardInfoBox;
 	private TemporossInfoBox fishInfoBox;
+	private TemporossInfoBox totalFishInfoBox;
 	private TemporossInfoBox damageInfoBox;
 	private TemporossInfoBox phaseInfoBox;
 
@@ -120,6 +126,10 @@ public class TemporossPlugin extends Plugin
 	private int previousRegion;
 
 	private int phase = 1;
+
+	private int uncookedFish = 0;
+	private int cookedFish = 0;
+	private int crystalFish = 0;
 
 	private Instant waveIncomingStartTime;
 
@@ -199,14 +209,20 @@ public class TemporossPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onWidgetLoaded(WidgetLoaded widgetLoaded) {
-		this.clientThread.invokeLater(() -> {
-			if (widgetLoaded.getGroupId() == WidgetID.TEMPOROSS_GROUP_ID) {
-				Widget widget = client.getWidget(WidgetID.TEMPOROSS_GROUP_ID, 0).getParent();
-				System.out.println(widget.getName() + " " + widget.getText());
-				client.getWidget(WidgetInfo.TEMPOROSS_STATUS_INDICATOR)
+	public void onScriptPreFired(ScriptPreFired scriptPreFired) {
+		if (!config.stormIntensityNotification() || scriptPreFired.getScriptId() != TEMPOROSS_HUD_UPDATE) {
+			return;
+		}
+
+		int[] stack = client.getIntStack();
+		if (stack[0] == STORM_INTENSITY) {
+			int currentStormIntensity = stack[1];
+			int ninetyPercentOfMaxStormIntensity = (int)(MAX_STORM_INTENSITY * .9);
+			// Compare to a 3 unit window. Seems to increase by 2 every tick, so this should make sure it only notifies once.
+			if (currentStormIntensity > ninetyPercentOfMaxStormIntensity && currentStormIntensity < ninetyPercentOfMaxStormIntensity + 3) {
+				notifier.notify("You are running out of time!");
 			}
-		});
+		}
 	}
 
 	@Subscribe
@@ -312,10 +328,7 @@ public class TemporossPlugin extends Plugin
 		{
 			phase++;
 
-			if (config.phaseIndicator())
-			{
-				addPhaseInfoBox(phase);
-			}
+			redrawInfoBoxes();
 
 			if (config.vulnerableNotification())
 			{
@@ -336,25 +349,11 @@ public class TemporossPlugin extends Plugin
 
 		ItemContainer inventory = event.getItemContainer();
 
-		int uncookedFish = inventory.count(ItemID.RAW_HARPOONFISH);
-		int cookedFish = inventory.count(ItemID.HARPOONFISH);
-		int crystalFish = inventory.count(ItemID.CRYSTALLISED_HARPOONFISH);
+		uncookedFish = inventory.count(ItemID.RAW_HARPOONFISH);
+		cookedFish = inventory.count(ItemID.HARPOONFISH);
+		crystalFish = inventory.count(ItemID.CRYSTALLISED_HARPOONFISH);
 
-		if (config.damageIndicator())
-		{
-			int damage = uncookedFish * DAMAGE_PER_UNCOOKED
-					+ cookedFish * DAMAGE_PER_COOKED
-					+ crystalFish * DAMAGE_PER_CRYSTAL;
-
-			addDamageInfoBox(damage);
-		}
-		if (config.fishIndicator())
-		{
-			addFishInfoBox(
-				(uncookedFish + crystalFish) + "/" + cookedFish + "/" + (uncookedFish + crystalFish + cookedFish),
-				"Uncooked Fish: " + (uncookedFish + crystalFish) + "</br>Cooked Fish: " + cookedFish + "</br>Total: " + (uncookedFish + crystalFish + cookedFish)
-			);
-		}
+		redrawInfoBoxes();
 	}
 
 	public void addTotemTimers(boolean setStart)
@@ -429,11 +428,25 @@ public class TemporossPlugin extends Plugin
 		infoBoxManager.addInfoBox(fishInfoBox);
 	}
 
+	public void addTotalFishInfoBox(String text, String tooltip)
+	{
+		infoBoxManager.removeInfoBox(totalFishInfoBox);
+		totalFishInfoBox = createInfobox(itemManager.getImage(NET_IMAGE_ID), text, tooltip);
+		infoBoxManager.addInfoBox(totalFishInfoBox);
+	}
+
 	public void removeFishInfoBox()
 	{
 		infoBoxManager.removeInfoBox(fishInfoBox);
 		fishInfoBox = null;
 	}
+
+	public void removeTotalFishInfoBox()
+	{
+		infoBoxManager.removeInfoBox(totalFishInfoBox);
+		totalFishInfoBox = null;
+	}
+
 
 	public void addDamageInfoBox(int damage)
 	{
@@ -466,28 +479,44 @@ public class TemporossPlugin extends Plugin
 		removeFishInfoBox();
 		removeDamageInfoBox();
 		removePhaseInfoBox();
+		removeTotalFishInfoBox();
 		npcs.clear();
 		totemMap.clear();
 		gameObjects.clear();
 		waveIsIncoming = false;
 		phase = 1;
+		uncookedFish = 0;
+		cookedFish = 0;
+		crystalFish = 0;
 	}
 
 	public void setup()
 	{
+		redrawInfoBoxes();
+	}
+
+	private void redrawInfoBoxes() {
 		if (config.phaseIndicator())
 		{
 			addPhaseInfoBox(phase);
 		}
-
 		if (config.damageIndicator())
 		{
-			addDamageInfoBox(0);
+			int damage = uncookedFish * DAMAGE_PER_UNCOOKED
+					+ cookedFish * DAMAGE_PER_COOKED
+					+ crystalFish * DAMAGE_PER_CRYSTAL;
+
+			addDamageInfoBox(damage);
 		}
 
 		if (config.fishIndicator())
 		{
-			addFishInfoBox("00/00/00", "Uncooked Fish: " + 0 + "</br>" + "Cooked Fish: " + 0 + "</br>" + "Total: " + 0);
+			addFishInfoBox(
+					(uncookedFish + crystalFish) + "/" + cookedFish,
+					"Uncooked Fish: " + (uncookedFish + crystalFish) + "</br>Cooked Fish: " + cookedFish
+			);
+			addTotalFishInfoBox((uncookedFish + crystalFish + cookedFish) + "",
+					"Total: " + (uncookedFish + crystalFish + cookedFish));
 		}
 	}
 }
