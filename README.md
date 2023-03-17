@@ -20,6 +20,3 @@
 <br/>
 <img align="left" width="350" height="200" src="https://user-images.githubusercontent.com/40608755/225803764-74610726-c93f-42a5-a03f-813d63984dfa.png">
 <img align="left" width="350" height="200" src="https://user-images.githubusercontent.com/20537001/112739938-d5c16180-8f78-11eb-94ed-8868d980b81b.png">
-
-
-![image](https://user-images.githubusercontent.com/40608755/225803487-f425fd9f-2740-4812-8f86-95eed4768854.png)
