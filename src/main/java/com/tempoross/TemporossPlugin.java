@@ -3,6 +3,7 @@ package com.tempoross;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provides;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameObject;
@@ -38,6 +39,8 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import static com.tempoross.TimerSwaps.*;
 
 @PluginDescriptor(
 	name = "Tempoross",
@@ -177,26 +180,18 @@ public class TemporossPlugin extends Plugin
 				break;
 			default:
 				//if it is not one of the above, it is a totem/mast and should be added to the totem map, with 7800ms duration, and the regular color
-				if (config.useWaveTimer())
-				{
-					totemMap.put(gameObjectSpawned.getGameObject(),
+				totemMap.put(gameObjectSpawned.getGameObject(),
 						new DrawObject(gameObjectSpawned.getTile(), gameObjectSpawned.getGameObject(),
-							Instant.now(), WAVE_IMPACT_MILLIS, config.waveTimerColor()));
-
-					//after the totem is repaired the timer at the tomem/mast should update with the new object and color, as long as a wave is incoming as well
-					if (waveIsIncoming)
-					{
-						addTotemTimers(false);
-					}
-
+								Instant.now(), WAVE_IMPACT_MILLIS, config.waveTimerColor()));
+				if (waveIsIncoming && config.useWaveTimer() != TimerModes.OFF)
+				{
+					addTotemTimers(false);
 				}
 				return;
 		}
 
-		if (config.highlightFires())
-		{
-			gameObjects.put(gameObjectSpawned.getGameObject(), new DrawObject(gameObjectSpawned.getTile(), gameObjectSpawned.getGameObject(), Instant.now(), duration, config.fireColor()));
-		}
+		gameObjects.put(gameObjectSpawned.getGameObject(), new DrawObject(gameObjectSpawned.getTile(), gameObjectSpawned.getGameObject(), Instant.now(), duration, config.fireColor()));
+//		}
 	}
 
 	@Subscribe
@@ -236,7 +231,6 @@ public class TemporossPlugin extends Plugin
 		{
 			return;
 		}
-
 		int region = WorldPoint.fromLocalInstance(client, client.getLocalPlayer().getLocalLocation()).getRegionID();
 
 		if (region != TEMPOROSS_REGION && previousRegion == TEMPOROSS_REGION)
@@ -272,7 +266,7 @@ public class TemporossPlugin extends Plugin
 
 		// The varb is a bitfield that refers to what totem/mast the player is tethered to,
 		// with each bit corresponding to a different object, so when tethered, the totem color should update
-		if (waveIsIncoming && config.useWaveTimer())
+		if (waveIsIncoming && config.useWaveTimer() != TimerModes.OFF)
 		{
 			addTotemTimers(false);
 		}
@@ -290,10 +284,7 @@ public class TemporossPlugin extends Plugin
 		if (message.contains(WAVE_INCOMING_MESSAGE))
 		{
 			waveIsIncoming = true;
-			if (config.useWaveTimer())
-			{
-				addTotemTimers(true);
-			}
+			addTotemTimers(true);
 
 			if (config.waveNotification())
 			{
