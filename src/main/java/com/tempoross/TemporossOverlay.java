@@ -1,7 +1,6 @@
 package com.tempoross;
 
 import com.google.common.collect.ImmutableSet;
-import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.client.ui.overlay.Overlay;
