@@ -5,6 +5,8 @@ import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import java.awt.Color;
 
+import static com.tempoross.TimerSwaps.*;
+
 @ConfigGroup("tempoross")
 public interface TemporossConfig extends Config
 {
@@ -14,9 +16,9 @@ public interface TemporossConfig extends Config
 		description = "Draws a square around the fires, and shows a timer when a fire spawns, or when a fire is going to spread",
 		position = 0
 	)
-	default boolean highlightFires()
+	default TimerModes highlightFires()
 	{
-		return true;
+		return TimerModes.PIE;
 	}
 
 	@ConfigItem(
@@ -77,12 +79,12 @@ public interface TemporossConfig extends Config
 	@ConfigItem(
 		keyName = "useWaveTimer",
 		name = "Enable Wave Timer",
-		description = "Shows a timer that indicates when the wave damage will hit on a totem pole",
+		description = "Shows a selected type of timer that indicates when the wave damage will hit on a totem pole",
 		position = 6
 	)
-	default boolean useWaveTimer()
+	default TimerModes useWaveTimer()
 	{
-		return true;
+		return TimerModes.PIE;
 	}
 
 	@ConfigItem(
